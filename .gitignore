@@ -1,0 +1,8 @@
+node_modules
+dist
+cache/raw
+.DS_Store
+.env*
+.muse-usage.jsonl
+.try-on-counts.json
+.look-counts.json
