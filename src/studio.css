@@ -1,0 +1,144 @@
+:root {
+  --night: #120c08;
+  --panel: rgb(30 22 16 / 0.86);
+  --paper: #f4ecdf;
+  --quiet: #c6b49c;
+  --brass: #cda66b;
+  --line: rgb(205 166 107 / 0.4);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Hanken Grotesk', system-ui, sans-serif;
+  --shade: 0.4;
+  --figure: min(74vh, 960px, calc((100vh - 104px) / 1.091)); /* The stand reaches 9.1% of the figure below its feet, and must clear the buttons. */
+  --side: 52vw; /* The width of the open wardrobe. */
+  --rail: linear-gradient(180deg, #f4dfb4, #cda66b 38%, #7a5829 82%, #a5804a);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: var(--night);
+  color: var(--paper);
+  font: 400 15px/1.45 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+.plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 100%;
+  opacity: 0;
+  transform-origin: 50% 100%;
+  transition: opacity 420ms ease, translate 460ms var(--ease-drawer);
+}
+
+.plate[data-on] {
+  opacity: 1;
+}
+
+.figure {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: max(19.5vh, calc(94px + var(--figure) * 0.091));
+  height: var(--figure);
+  aspect-ratio: 1120 / 2130;
+  user-select: none;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.body {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 97.6%;
+  will-change: transform, filter;
+}
+
+/* The look underneath stays, softened, until Muse's answer replaces it. */
+.body {
+  transition: opacity 300ms ease, filter 300ms ease;
+}
+
+[data-working] .body {
+  opacity: 0.8;
+  filter: blur(2px) saturate(0.7);
+}
+
+@property --rise {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: -16%;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  will-change: opacity;
+}
+
+.reveal {
+  z-index: 2;
+  mask-image: linear-gradient(to top, #000 var(--rise), transparent calc(var(--rise) + 16%));
+}
+
+.reveal[hidden] {
+  display: none;
+}
+
+/* The mannequin leaves exactly where the person arrives, so their two outlines never show together. */
+.body[data-lifting] {
+  mask-image: linear-gradient(to top, transparent var(--rise), #000 calc(var(--rise) + 16%));
+}
+
+/* Feet land at 97.6% of the frame, so the middle of the stand's top face is placed there. */
+.stand {
+  position: absolute;
+  left: 50%;
+  top: 89.6%;
+  width: 74%;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 420ms ease;
+}
+
+.stand[data-on] {
+  opacity: 1;
+}
+
+/* The stand's base ends at 109% of the figure. This falls on the floor around and in front of it. */
+.ground {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  top: 95%;
+  height: 19%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(14 10 7 / var(--shade)) 62%, rgb(14 10 7 / 0));
+}
+
