@@ -1,0 +1,152 @@
+const MAX_SIDE = 1400;
+const CANVAS = { width: 1120, height: 2130 };
+const FIGURE = { top: 70, bottom: 2080 };
+const EDGE = 2; // Pixels trimmed from the outline.
+const SECONDS = 20; // Up to the front, which is shown at once. The back follows from it, another image later.
+
+const dialog = document.getElementById('upload');
+const file = document.getElementById('upload-file');
+const consent = document.getElementById('upload-consent');
+const send = document.getElementById('upload-send');
+const preview = document.getElementById('upload-preview');
+const hint = document.getElementById('upload-hint');
+const drop = document.getElementById('upload-drop');
+const changePhoto = document.getElementById('change-photo');
+const errorLine = document.getElementById('upload-error');
+const made = new Map(); // Each look on this photo is paid for once.
+let photo = null;
+
+const smooth = (low, high, x) => {
+  const t = Math.min(Math.max((x - low) / (high - low), 0), 1);
+  return t * t * (3 - 2 * t);
+};
+
+async function loadImage(url) {
+  const image = new Image();
+  image.src = url;
+  await image.decode();
+  return image;
+}
+
+/** The photo is shrunk here, so the request stays small and nothing larger than needed leaves the device. */
+async function shrink(selected) {
+  const image = await loadImage(URL.createObjectURL(selected));
+  const scale = Math.min(1, MAX_SIDE / Math.max(image.naturalWidth, image.naturalHeight));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(image.naturalWidth * scale);
+  canvas.height = Math.round(image.naturalHeight * scale);
+  canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.9);
+}
+
+/** Muse drifts from the green it was asked for, more so from a real photo, so the colour to remove is read from the image's own edges. */
+function backdrop(data, width, height) {
+  const channels = [[], [], []];
+  const sample = (x, y) => channels.forEach((values, c) => values.push(data[(y * width + x) * 4 + c]));
+  for (let x = 0; x < width; x += 4) {
+    sample(x, 0);
+    sample(x, height - 1);
+  }
+  for (let y = 0; y < height; y += 4) {
+    sample(0, y);
+    sample(width - 1, y);
+  }
+  return channels.map((values) => values.sort((a, b) => a - b)[values.length >> 1]);
+}
+
+/** How far a pixel is from being backdrop gone dark: Muse shades the green in gaps between fingers, arms and legs, away from the colour read at the edges. Olive and sage stay below this. */
+function shadedGreen(red, green, blue) {
+  const excess = green - Math.max(red, blue);
+  return smooth(10, 24, excess) * smooth(0.16, 0.28, excess / Math.max(green, 1));
+}
+
+/** How green this look's clothes really are, read from the mannequin wearing them, which has no green backdrop to pick up. Olive stays olive and cream stays cream. */
+async function clothGreen(look) {
+  const image = await loadImage(`api/looks/${look}-front.webp`);
+  const canvas = document.createElement('canvas');
+  canvas.width = image.naturalWidth >> 2;
+  canvas.height = image.naturalHeight >> 2;
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+  const shares = [];
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i + 3] > 250) shares.push((data[i + 1] - Math.max(data[i], data[i + 2])) / Math.max(data[i + 1], 1));
+  }
+  return shares.sort((a, b) => a - b)[Math.floor(shares.length * 0.9)];
+}
+
+/** Each pixel takes the lowest or highest value within a radius, one axis at a time. */
+function spread(values, width, height, radius, pick) {
+  const across = values.slice();
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let value = values[y * width + x];
+      for (let d = Math.max(x - radius, 0); d <= Math.min(x + radius, width - 1); d++) value = pick(value, values[y * width + d]);
+      across[y * width + x] = value;
+    }
+  }
+  const result = across.slice();
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let value = across[y * width + x];
+      for (let d = Math.max(y - radius, 0); d <= Math.min(y + radius, height - 1); d++) value = pick(value, across[d * width + x]);
+      result[y * width + x] = value;
+    }
+  }
+  return result;
+}
+
+/** Cuts the figure out and places it on the mannequin's canvas, so the person stands exactly where it did. */
+async function cutOut(base64, green) {
+  const image = await loadImage(`data:image/webp;base64,${base64}`);
+  const source = document.createElement('canvas');
+  source.width = image.naturalWidth;
+  source.height = image.naturalHeight;
+  const context = source.getContext('2d', { willReadFrequently: true });
+  context.drawImage(image, 0, 0);
+  const pixels = context.getImageData(0, 0, source.width, source.height);
+  const { data, width, height } = pixels;
+  const [keyRed, keyGreen, keyBlue] = backdrop(data, width, height);
+  const matte = new Uint8Array(width * height);
+  for (let p = 0; p < matte.length; p++) {
+    const [red, green, blue] = [data[p * 4], data[p * 4 + 1], data[p * 4 + 2]];
+    matte[p] = smooth(0.1, 0.2, Math.hypot(red - keyRed, green - keyGreen, blue - keyBlue) / 255) * (1 - shadedGreen(red, green, blue)) * 255;
+  }
+  // Pixels on the outline are part background, so the outline is pulled in and whatever green is left nearby is removed.
+  const alpha = spread(matte, width, height, EDGE, Math.min);
+  const near = spread(alpha.map((value) => (value < 250 ? 255 : 0)), width, height, EDGE * 2, Math.max);
+  let top = height;
+  let bottom = 0;
+  for (let p = 0; p < alpha.length; p++) {
+    const i = p * 4;
+    data[i + 3] = alpha[p];
+    const brightest = Math.max(data[i], data[i + 2]);
+    // Light cloth also reflects the backdrop inside its folds, so nothing stays greener than the look itself.
+    data[i + 1] = Math.min(data[i + 1], near[p] ? brightest * 1.02 : brightest / (1 - green));
+    if (alpha[p] > 127) {
+      const y = Math.floor(p / width);
+      top = Math.min(top, y);
+      bottom = Math.max(bottom, y);
+    }
+  }
+  let left = width;
+  let right = 0;
+  for (let y = bottom - Math.floor((bottom - top) * 0.03); y <= bottom; y++) {
+    for (let x = 0; x < width; x++) {
+      if (data[(y * width + x) * 4 + 3] > 127) {
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+      }
+    }
+  }
+  context.putImageData(pixels, 0, 0);
+  const scale = (FIGURE.bottom - FIGURE.top) / (bottom - top);
+  const placed = document.createElement('canvas');
+  Object.assign(placed, CANVAS);
+  const target = placed.getContext('2d');
+  target.imageSmoothingQuality = 'high';
+  target.drawImage(source, CANVAS.width / 2 - ((left + right) / 2) * scale, FIGURE.top - top * scale, width * scale, height * scale);
+  return placed.toDataURL('image/webp', 0.92);
+}
+
