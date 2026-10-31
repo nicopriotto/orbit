@@ -738,3 +738,145 @@ header p {
   -webkit-tap-highlight-color: transparent;
 }
 
+.snap[hidden] {
+  display: none;
+}
+
+[data-wardrobe] .snap {
+  visibility: hidden;
+}
+
+.snap-print {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1080 / 1320;
+  rotate: -3deg;
+  box-shadow: 0 18px 34px rgb(18 12 8 / 0.42), 0 2px 5px rgb(18 12 8 / 0.3);
+  animation: snap-out 640ms var(--ease-out) 700ms both;
+  transition: rotate 220ms var(--ease-out), scale 160ms var(--ease-out);
+}
+
+.snap-print img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The photo area only, in the print's own proportions. */
+.snap-print::after {
+  content: '';
+  position: absolute;
+  inset: 4.1% 5% 17.1%;
+  background: #cfc6b6;
+  animation: snap-develop 2600ms ease-out 1100ms both;
+  pointer-events: none;
+}
+
+.snap-label {
+  padding: 7px 14px 8px;
+  border-radius: 999px;
+  background: var(--panel);
+  font: 500 14px/1 var(--sans);
+  box-shadow: inset 0 0 0 1px var(--line);
+  backdrop-filter: blur(6px);
+  animation: snap-label 300ms ease 1500ms both;
+}
+
+.snap:active .snap-print {
+  scale: 0.97;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .snap:hover .snap-print {
+    rotate: -1deg;
+  }
+}
+
+.snap:focus-visible {
+  outline: none;
+}
+
+.snap:focus-visible .snap-label {
+  box-shadow: inset 0 0 0 2px var(--paper);
+}
+
+@keyframes snap-out {
+  from {
+    opacity: 0;
+    transform: translateY(32px) rotate(5deg) scale(0.94);
+  }
+}
+
+@keyframes snap-develop {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes snap-label {
+  from {
+    opacity: 0;
+  }
+}
+
+dialog.snap-view {
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  padding: 0;
+  overflow: visible;
+  background: none;
+  box-shadow: none;
+}
+
+#snap-full {
+  display: block;
+  width: auto;
+  margin-inline: auto;
+  height: min(calc(100dvh - 110px), calc((100vw - 32px) * 1.222));
+  box-shadow: 0 24px 60px rgb(18 12 8 / 0.55);
+}
+
+.snap-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px 24px;
+  margin-top: 16px;
+}
+
+.snap-places {
+  display: flex;
+  gap: 16px;
+  padding: 0 6px;
+}
+
+.snap-places .place {
+  width: 46px;
+  height: 46px;
+}
+
+.snap-places .place img {
+  filter: none;
+}
+
+.snap-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.snap-view a {
+  text-decoration: none;
+}
+
+/* The brand's store, not the fitting room: its own paper, ink and buttons, inside a small browser window. */
+dialog.store {
+  width: min(480px, calc(100vw - 32px));
+  padding: 0;
+  overflow: hidden auto;
+  background: #fbf8f2;
+  color: #2c2118;
+  box-shadow: 0 24px 60px rgb(18 12 8 / 0.55);
+}
+
