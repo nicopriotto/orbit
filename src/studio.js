@@ -150,3 +150,154 @@ function lockTurn(locked) {
   syncTurn();
 }
 
+/** A try-on arrives front first, so until its back exists there is nothing to turn to. */
+function syncTurn() {
+  const locked = $('wardrobe').hasAttribute('data-locked') || Boolean(wearer && !wearer.back);
+  for (const id of ['turn-left', 'turn-right']) $(id).disabled = locked;
+  const note = !wearer || wearer.back ? '' : wearer.failed ? BACK_FAILED : BACK_WAIT;
+  if (note || [BACK_WAIT, BACK_FAILED].includes($('working-text').textContent)) notice(note);
+}
+
+async function requestLook(look) {
+  const response = await fetch('api/looks', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ look }),
+  });
+  if (!response.ok) throw new Error((await response.json()).error);
+  saved[look] = VIEWS;
+}
+
+let changing = 0;
+
+/** Only one look is ever on the figure: this one fades away, the pictures change while nothing shows, and the next one arrives. */
+async function change(apply) {
+  const turn = ++changing;
+  const body = $('body');
+  if (!motion) {
+    apply();
+    return;
+  }
+  const opacity = getComputedStyle(body).opacity;
+  const running = body.getAnimations();
+  const out = body.animate([{ opacity }, { opacity: 0, filter: 'blur(6px)' }], { duration: CHANGE_OUT_MS, easing: 'ease-in-out', fill: 'forwards' });
+  running.forEach((animation) => animation.cancel());
+  await out.finished.catch(() => {});
+  if (turn !== changing) return;
+  apply();
+  await Promise.all(frames.map((image) => image.decode().catch(() => {})));
+  if (turn !== changing) return;
+  body.animate([
+    { opacity: 0, filter: 'blur(10px)', scale: '0.97', translate: '0 1.2%' },
+    { opacity: 1, filter: 'blur(0)', scale: '1', translate: '0 0' },
+  ], { duration: CHANGE_IN_MS, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+  out.cancel();
+}
+
+function changeInto(look) {
+  const repaint = () => {
+    shown = look;
+    drawn = '';
+    draw();
+  };
+  if (look === shown) repaint();
+  else change(repaint);
+}
+
+const facing = () => STOPS.reduce((best, stop) => (Math.abs(wrap(angle) - stop.at) < Math.abs(wrap(angle) - best.at) ? stop : best)).view;
+
+/** A saved look changes at once. A new one is painted once by Muse, every view together, then stays on the server for everyone. */
+async function dress() {
+  const look = chosen();
+  const turn = ++dressing;
+  if (saved[look]?.length !== VIEWS.length) {
+    lockTurn(true);
+    wait(MUSE_SECONDS);
+    try {
+      await requestLook(look);
+    } catch (error) {
+      if (turn === dressing) refuse(error);
+      return;
+    }
+  }
+  await load(picture(look, facing()));
+  VIEWS.forEach((view) => load(picture(look, view)));
+  if (turn !== dressing) return;
+  await finishWaiting();
+  if (turn !== dressing) return;
+  changeInto(look); // First, while the figure is still dimmed, so it leaves from there.
+  stopWaiting();
+  lockTurn(false);
+  label();
+}
+
+/** The mannequin is still in the last look that worked, so the choice falls back to match it. */
+function refuse(error) {
+  history.pop();
+  syncDock();
+  wearLook(shown);
+  renderLook();
+  stopWaiting();
+  lockTurn(false);
+  flash(error.message);
+}
+
+const covered = ({ top, bottom }) => top?.whole || (bottom && top);
+
+/** Surprise deals only from whole outfits already saved, so it never spends anything or leaves the figure half dressed. */
+function surprise() {
+  remember();
+  leaveWearer();
+  const options = Object.keys(saved).filter((look) => look.startsWith(MAN) === Boolean(figure) && covered(LOOKS.get(plainLook(look)) ?? {}) && saved[look].length === VIEWS.length && look !== chosen());
+  if (!options.length) {
+    history.pop();
+    syncDock();
+    flash('No saved looks for this mannequin yet');
+    return;
+  }
+  wearLook(options[Math.floor(Math.random() * options.length)]);
+  renderLook();
+  dress();
+}
+
+function wearLook(look) {
+  figure = look.startsWith(MAN) ? MAN : '';
+  const { top = null, bottom = null, outer = null } = LOOKS.get(plainLook(look)) ?? {};
+  Object.assign(state, { top, bottom, outer });
+}
+
+function renderLook() {
+  const { top, bottom, outer } = state;
+  const names = [outer?.name, top?.name, bottom?.name].filter(Boolean);
+  if (names.length) names.push(SNEAKERS.name);
+  $('pieces').textContent = names.length ? names.join(' · ') : 'Open the wardrobe to pick a piece';
+  $('total').textContent = names.length ? money((top?.price ?? 0) + (bottom?.price ?? 0) + (outer?.price ?? 0)) : '';
+  $('try').disabled = !names.length;
+  $('try').classList.toggle('primary', Boolean(names.length));
+  $('look-toggle').disabled = !names.length;
+  if (!names.length) unfoldLook(false);
+  renderWorn();
+  syncDock();
+  label();
+}
+
+function showStorePane(done) {
+  $('store-cart').hidden = done;
+  $('store-done').hidden = !done;
+}
+
+function shop() {
+  $('store-list').replaceChildren(...lookRows());
+  $('store-total').textContent = $('total').textContent;
+  $('store-demo').hidden = Boolean(STORE);
+  showStorePane(false);
+  $('store').showModal();
+}
+
+/** Without a store behind it, the demo says what would happen rather than open a page that isn't there. */
+function checkout() {
+  if (!STORE) return showStorePane(true);
+  const items = [state.outer, state.top, state.bottom].filter(Boolean).map((item) => item.id);
+  open(`${STORE}?items=${items.join(',')}`, '_blank', 'noopener');
+}
+
