@@ -1022,3 +1022,146 @@ dialog.store {
   backdrop-filter: blur(6px);
 }
 
+.tag-head {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  column-gap: 12px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 14px 11px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tag-head:disabled {
+  cursor: default;
+}
+
+.tag-head:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+}
+
+.tag-label {
+  grid-column: 1;
+  color: var(--brass);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag-pieces {
+  grid-column: 1;
+  display: -webkit-box;
+  overflow: hidden;
+  font: 500 17px/1.25 var(--serif);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.tag-total {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  color: var(--brass);
+  font: 600 25px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.tag-total:empty {
+  display: none;
+}
+
+.tag-head svg {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: rotate 220ms var(--ease-out);
+}
+
+.tag-head:disabled svg {
+  display: none;
+}
+
+[data-open] .tag-head svg {
+  rotate: 180deg;
+}
+
+[data-open] .tag-pieces {
+  display: none;
+}
+
+[data-open] .tag-label {
+  grid-row: 1 / span 2;
+}
+
+.tag-shop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 14px 1px 16px;
+  border: 0;
+  border-top: 1px solid rgb(205 166 107 / 0.22);
+  border-radius: 0 0 12px 12px;
+  background: none;
+  color: var(--brass);
+  font: 600 14px/1 var(--sans);
+  cursor: pointer;
+}
+
+.tag-shop[hidden] {
+  display: none;
+}
+
+.tag-shop:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+}
+
+.tag-shop svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: translate 160ms var(--ease-out);
+}
+
+@media (hover: hover) {
+  .tag-shop:hover svg {
+    translate: 3px 0;
+  }
+}
+
+/* The list unfolds upward from the tag. */
+.worn-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 240ms var(--ease-out);
+}
+
+[data-open] .worn-fold {
+  grid-template-rows: 1fr;
+}
+
+.worn {
+  overflow: hidden;
+  min-height: 0;
+  margin: 0;
+  padding: 0 14px;
+  list-style: none;
+}
+
