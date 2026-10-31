@@ -154,3 +154,83 @@
       <div class="sections" id="sections"></div>
     </aside>
 
+    <dialog class="snap-view" id="snap-view" aria-label="Your photo">
+      <img id="snap-full" alt="You wearing the look, as an instant photo" draggable="false" />
+      <div class="snap-bar">
+        <nav class="snap-places" id="snap-places" aria-label="Places"></nav>
+        <div class="snap-actions">
+          <button type="button" class="pill" id="snap-close">Close</button>
+          <button type="button" class="pill" id="snap-share" hidden>Share</button>
+          <a class="pill primary" id="snap-save">Download</a>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- A stand-in for the brand's own store, with the look already in its cart. -->
+    <dialog class="store" id="store" aria-labelledby="store-title">
+      <div class="store-bar" aria-hidden="true"><i></i><i></i><i></i><span>yourbrand.example/cart</span></div>
+      <div class="store-page">
+        <div class="store-head">
+          <p class="store-brand">Your Brand</p>
+          <p class="store-demo" id="store-demo">Demo store</p>
+        </div>
+        <div id="store-cart">
+          <h2 id="store-title">Your cart</h2>
+          <p class="store-lead">The look you tried on, ready to buy.</p>
+          <ul class="worn store-list" id="store-list"></ul>
+          <div class="store-sum"><span>Subtotal</span><b id="store-total"></b></div>
+          <p class="store-note">Shipping and taxes are worked out at checkout.</p>
+          <div class="row">
+            <button type="button" class="pill" id="store-close">Keep trying on</button>
+            <button type="button" class="pill primary" id="store-checkout">Go to checkout</button>
+          </div>
+        </div>
+        <div id="store-done" hidden>
+          <h2>This is the hand-off</h2>
+          <p class="store-lead">A live store takes over here, with the whole look in its cart. No order was placed.</p>
+          <div class="row">
+            <button type="button" class="pill primary" id="store-back">Back to the fitting room</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog id="upload" aria-labelledby="upload-title">
+      <form method="dialog" id="upload-form">
+        <h2 id="upload-title">See it on you</h2>
+        <div class="upload-grid">
+          <label class="drop" id="upload-drop">
+            <img class="drop-guide" src="studio/set/bare-front.webp" alt="" draggable="false" />
+            <img id="upload-preview" alt="" hidden />
+            <span id="upload-hint">Drop a photo<br />or choose one</span>
+            <input type="file" id="upload-file" accept="image/jpeg,image/png,image/webp" />
+          </label>
+          <div>
+            <p class="tips-title">What works best</p>
+            <ul class="tips">
+              <li>Head to toe in the frame</li>
+              <li>One adult, facing the camera</li>
+              <li>Good light and fitted clothes</li>
+            </ul>
+          </div>
+        </div>
+        <label class="consent">
+          <input type="checkbox" id="upload-consent" />
+          <span>This is me, or I have this person's permission. I am 18 or older. My photo goes to Meta's Muse API to make these images and Orbit does not keep it. While this demo runs on free credits, Meta may use that content to improve its products.</span>
+        </label>
+        <p class="error" id="upload-error" role="alert" hidden></p>
+        <div class="row">
+          <button type="button" class="pill" id="upload-cancel">Cancel</button>
+          <button type="submit" class="pill primary" id="upload-send" disabled>Dress me</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="working" id="working" role="status" hidden>
+      <span id="working-text"></span>
+    </div>
+
+    <script type="module" src="/src/try-on.js"></script>
+    <script type="module" src="/src/studio.js"></script>
+  </body>
+</html>
