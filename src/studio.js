@@ -477,3 +477,159 @@ function createSpot(item) {
   return spot;
 }
 
+function fitArrows(section) {
+  const rail = section.querySelector('.rail');
+  const room = rail.scrollWidth - rail.clientWidth;
+  section.toggleAttribute('data-fits', room < 2);
+  section.querySelector('[data-go="-1"]').disabled = rail.scrollLeft < 2;
+  section.querySelector('[data-go="1"]').disabled = rail.scrollLeft > room - 2;
+}
+
+/** Every kind of garment keeps its own rail. The arrows only show once a kind holds more than its rail can show. */
+function createSection(kind) {
+  const section = document.createElement('section');
+  section.className = 'section';
+  section.dataset.kind = kind.id;
+  section.setAttribute('aria-label', kind.label);
+  section.innerHTML = `
+    <div class="section-head">
+      <h3>${kind.label}</h3>
+      <button type="button" class="round" data-go="-1" aria-label="Previous ${kind.label}">${PREVIOUS}</button>
+      <button type="button" class="round" data-go="1" aria-label="Next ${kind.label}">${NEXT}</button>
+    </div>
+    <div class="hanging">
+      <span class="rail-bar"></span>
+      <div class="rail"></div>
+    </div>`;
+  const rail = section.querySelector('.rail');
+  rail.append(...WARDROBE.filter((item) => item.category === kind.id).map(createSpot));
+  rail.addEventListener('scroll', () => fitArrows(section), { passive: true });
+  for (const button of section.querySelectorAll('[data-go]')) {
+    button.addEventListener('click', () => rail.scrollBy({ left: Number(button.dataset.go) * rail.clientWidth * 0.8, behavior: motion ? 'smooth' : 'auto' }));
+  }
+  return section;
+}
+
+const ARROW = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}" /></svg>`;
+const PREVIOUS = ARROW('M15 5l-7 7 7 7');
+const NEXT = ARROW('M9 5l7 7-7 7');
+const TAKE_OFF = ARROW('M6 6l12 12M18 6L6 18');
+const TURN_OVER = ARROW('M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5');
+
+$('sections').append(...KINDS.map(createSection));
+const fitAll = () => document.querySelectorAll('.section').forEach(fitArrows);
+addEventListener('resize', fitAll);
+
+/* Quick access: one bar that stays on top and follows the scroll, with a single mark sliding between the kinds. */
+
+const jumps = KINDS.map((kind) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = kind.label;
+  button.addEventListener('click', () => jumpTo(kind));
+  $('jump').append(button);
+  return { kind, button };
+});
+let pinned = null; // The kind just asked for: the last ones can't reach the top, so the scroll alone can't say it was picked.
+
+function markJump(kind) {
+  const { button } = jumps.find((jump) => jump.kind === kind);
+  for (const jump of jumps) jump.button.toggleAttribute('data-here', jump.button === button);
+  $('jump-mark').style.transform = `translateX(${button.offsetLeft}px)`;
+  $('jump-mark').style.width = `${button.offsetWidth}px`;
+  $('jump').scrollTo({ left: button.offsetLeft - ($('jump').clientWidth - button.offsetWidth) / 2, behavior: motion ? 'smooth' : 'auto' });
+}
+
+const kindSection = (kind) => document.querySelector(`.section[data-kind="${kind.id}"]`);
+
+function jumpTo(kind) {
+  pinned = kind;
+  markJump(kind);
+  const top = kindSection(kind).getBoundingClientRect().top - $('wardrobe-top').getBoundingClientRect().bottom - 12;
+  $('wardrobe').scrollBy({ top, behavior: motion ? 'smooth' : 'auto' });
+}
+
+function followScroll() {
+  if (pinned) return;
+  const line = $('wardrobe-top').getBoundingClientRect().bottom + 60;
+  const { kind } = jumps.findLast((jump) => kindSection(jump.kind).getBoundingClientRect().top <= line) ?? jumps[0];
+  const atEnd = $('wardrobe').scrollTop + $('wardrobe').clientHeight >= $('wardrobe').scrollHeight - 2;
+  markJump(atEnd ? jumps.at(-1).kind : kind);
+}
+
+$('wardrobe').addEventListener('scroll', followScroll, { passive: true });
+for (const name of ['wheel', 'touchmove']) $('wardrobe').addEventListener(name, () => { pinned = null; }, { passive: true });
+
+function showWardrobe(visible) {
+  document.body.toggleAttribute('data-wardrobe', visible);
+  for (const id of ['open-wardrobe', 'wardrobe-rail']) $(id).setAttribute('aria-expanded', String(visible));
+  $('wardrobe-label').firstElementChild.textContent = visible ? 'Close the ' : 'Open the ';
+  $('wardrobe').inert = !visible;
+  if (visible) {
+    fitAll();
+    pinned = null;
+    followScroll();
+  }
+}
+
+$('open-wardrobe').addEventListener('click', () => showWardrobe(!document.body.hasAttribute('data-wardrobe')));
+$('wardrobe-rail').addEventListener('click', () => showWardrobe(true));
+$('wardrobe-close').addEventListener('click', () => showWardrobe(false));
+addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape' || document.querySelector('dialog[open]') || !document.body.hasAttribute('data-wardrobe')) return;
+  showWardrobe(false);
+});
+$('surprise').addEventListener('click', surprise);
+
+let last = 0;
+function frame(now) {
+  const dt = Math.min((now - last) / 1000, 0.05);
+  last = now;
+  let bend = 0;
+  if (tween) {
+    const t = tween.length ? Math.min((now - tween.start) / tween.length, 1) : 1;
+    angle = tween.from + (tween.to - tween.from) * smoothstep(t);
+    bend = Math.sin(Math.PI * t) * tween.reach;
+    if (t === 1) tween = null;
+  }
+  lean(dt, bend);
+  draw();
+  requestAnimationFrame(frame);
+}
+
+/* Places */
+
+const plates = [$('plate-a'), $('plate-b')];
+const stands = [$('stand-a'), $('stand-b')];
+let plate = 0;
+let placing = 0; // Only the last place asked for arrives, however quickly they are clicked.
+let room = PLACES[0];
+
+function setPlace(place) {
+  const ticket = ++placing;
+  room = place;
+  syncPrint();
+  for (const button of document.querySelectorAll('.place')) button.setAttribute('aria-pressed', String(button.dataset.place === place.id));
+  $('place-name').textContent = place.name;
+  const root = document.documentElement.style;
+  root.setProperty('--shade', place.shade);
+  const incoming = 1 - plate;
+  plates[incoming].src = `studio/places/${place.id}.webp`;
+  plates[incoming].style.transform = `scale(${place.zoom})`;
+  stands[incoming].src = `studio/set/stand-${place.id}.webp`;
+  Promise.all([plates[incoming], stands[incoming]].map((image) => image.decode().catch(() => {}))).then(() => {
+    if (ticket !== placing) return;
+    const outgoing = plate;
+    plates[incoming].style.zIndex = 1;
+    plates[outgoing].style.zIndex = 0;
+    plates[incoming].dataset.on = '';
+    stands[incoming].dataset.on = '';
+    delete stands[outgoing].dataset.on;
+    plate = incoming;
+    // The old photo waits underneath until the new one covers it, or the room would dip to black halfway.
+    setTimeout(() => {
+      if (plate !== outgoing) delete plates[outgoing].dataset.on;
+    }, PLATE_FADE_MS);
+  });
+}
+
