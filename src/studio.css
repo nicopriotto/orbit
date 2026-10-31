@@ -1599,3 +1599,150 @@ dialog .error {
   margin-bottom: 8px;
 }
 
+.section h3 {
+  flex: 1;
+  margin: 0;
+  font: 600 23px/1.2 var(--serif);
+}
+
+.section-head .round {
+  width: 30px;
+  height: 30px;
+}
+
+.section[data-fits] .section-head .round {
+  display: none;
+}
+
+.hanging {
+  position: relative;
+}
+
+.rail-bar {
+  position: absolute;
+  top: 6px;
+  right: -8px;
+  left: -8px;
+  height: 7px;
+  border-radius: 99px;
+  background: var(--rail);
+  box-shadow: 0 2px 5px rgb(44 33 24 / 0.3);
+}
+
+.rail {
+  position: relative;
+  display: flex;
+  gap: 14px;
+  overflow: auto hidden; /* Hidden, not clipped by default, so a vertical wheel goes on to the wardrobe itself. */
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+}
+
+.spot {
+  position: relative;
+  flex: 0 0 calc((100% - 28px) / 3.4); /* The next garment shows in part, which says the rail goes on. */
+  min-width: 132px;
+  scroll-snap-align: start;
+}
+
+/* The garment being worn stands on a brass card. */
+.spot::before {
+  content: '';
+  position: absolute;
+  inset: 22px 0 0;
+  border-radius: 14px;
+  background: rgb(205 166 107 / 0.2);
+  box-shadow: inset 0 0 0 2px var(--brass);
+  opacity: 0;
+  transition: opacity 180ms ease;
+}
+
+.spot:has(.piece[aria-pressed='true'])::before {
+  opacity: 1;
+}
+
+/* Hovering shows the back, and the button turns it to the other side from there. Leaving puts it back. */
+@media (hover: hover) and (pointer: fine) {
+  .spot:hover:not([data-turned]) .flip {
+    transform: rotateY(180deg);
+  }
+}
+
+.spot[data-turned]:not(:hover) .flip {
+  transform: rotateY(180deg);
+}
+
+@media (hover: none) {
+  .spot[data-turned] .flip {
+    transform: rotateY(180deg);
+  }
+}
+
+.piece {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  width: 100%;
+  padding: 0 0 14px;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  text-align: center;
+  transition: transform 160ms var(--ease-out);
+}
+
+.piece:active {
+  transform: scale(0.98);
+}
+
+[data-locked] .piece {
+  cursor: default;
+}
+
+/* A top hangs from a hook that disappears behind its collar. Trousers hang from clips on the waistband, over the cloth. */
+.hanger {
+  position: relative;
+  z-index: 0;
+  width: 42px;
+  height: 45px;
+  margin-bottom: -14px;
+}
+
+.spot[data-slot='bottom'] .hanger {
+  z-index: 2;
+  width: 50%;
+  height: 32px;
+  margin-bottom: -6px;
+}
+
+.spot[data-slot='bottom'] .piece b {
+  margin-top: 8px;
+}
+
+.piece .flip {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: calc(var(--h) * 2.1px);
+  perspective: 900px;
+}
+
+.piece .flip img {
+  object-position: 50% 0;
+  filter: drop-shadow(0 8px 10px rgb(44 33 24 / 0.26));
+}
+
+.piece b {
+  margin-top: 8px;
+  font: 600 17px/1.15 var(--serif);
+}
+
+.piece i {
+  margin-top: 2px;
+  color: var(--ink-soft);
+  font: 500 13px/1.3 var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+
