@@ -633,3 +633,187 @@ function setPlace(place) {
   });
 }
 
+function placeButton(place) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'place';
+  button.dataset.place = place.id;
+  button.setAttribute('aria-label', place.name);
+  button.innerHTML = `<img src="studio/places/${place.id}-thumb.webp" alt="" />`;
+  button.addEventListener('click', () => setPlace(place));
+  return button;
+}
+
+for (const place of PLACES) {
+  new Image().src = `studio/places/${place.id}.webp`;
+  new Image().src = `studio/set/stand-${place.id}.webp`;
+  $('places').append(placeButton(place));
+  $('snap-places').append(placeButton(place));
+}
+
+/* Trying it on, and stepping back */
+
+const history = []; // What was on the figure before each change, the visitor's own images included.
+const future = []; // What Back stepped away from, until something new is chosen.
+
+function syncDock() {
+  $('leave').hidden = !wearer;
+  $('try').hidden = Boolean(wearer);
+  $('open-wardrobe').hidden = Boolean(wearer);
+  $('shop-worn').hidden = !wearer;
+  $('shop').hidden = Boolean(wearer) || undressed();
+  $('shop-bag').hidden = $('shop').hidden;
+  $('steps').hidden = !history.length && !future.length;
+  $('undo').disabled = !history.length;
+  $('redo').disabled = !future.length;
+  syncTurn();
+  syncPrint();
+}
+
+/* The keepsake */
+
+let printing = 0; // Only the print of what is on the stand now gets shown.
+let printed = {}; // What the print on show was made from, and the finished file.
+
+/** Develops once per side of the person and room, and leaves with the person. */
+async function syncPrint() {
+  const side = wrap(tween?.to ?? angle) === 180 ? wearer?.back : wearer?.front;
+  if (side === printed.side && room === printed.room) return;
+  const ticket = ++printing;
+  printed = { side, room };
+  if (!wearer) {
+    $('snap').hidden = true;
+    return;
+  }
+  const { top, bottom, outer } = LOOKS.get(plainLook(wearer.look));
+  const caption = [outer, top, bottom].filter(Boolean).slice(0, 2).map((item) => item.name).join(', ');
+  const blob = await makePrint({ person: side, place: room, caption });
+  if (ticket !== printing) return;
+  URL.revokeObjectURL($('snap-image').src);
+  const url = URL.createObjectURL(blob);
+  const name = `${APP_NAME.toLowerCase()}-look.jpg`;
+  printed.file = new File([blob], name, { type: 'image/jpeg' });
+  $('snap-image').src = url;
+  $('snap-full').src = url;
+  $('snap-save').href = url;
+  $('snap-save').download = name;
+  $('snap-share').hidden = !navigator.canShare?.({ files: [printed.file] });
+  $('snap').hidden = false;
+}
+
+$('snap').addEventListener('click', () => $('snap-view').showModal());
+$('snap-close').addEventListener('click', () => $('snap-view').close());
+$('snap-view').addEventListener('click', (e) => {
+  if (e.target === $('snap-view')) $('snap-view').close();
+});
+$('snap-share').addEventListener('click', () => navigator.share({ files: [printed.file], title: APP_NAME }).catch(() => {}));
+
+function remember() {
+  history.push({ look: shown, wearer });
+  if (history.length > HISTORY) history.shift();
+  future.length = 0;
+  syncDock();
+}
+
+/** Takes the last step off one list and leaves where the figure was on the other, so Back and Forward undo each other. */
+function travel(from, to) {
+  const previous = from.pop();
+  if (!previous) return;
+  to.push({ look: shown, wearer });
+  dressing++;
+  stopWaiting();
+  lockTurn(false);
+  notice('');
+  wearLook(previous.look);
+  wearer = previous.wearer;
+  syncDock();
+  if (wearer) turnTo(Math.round(angle / 360) * 360);
+  renderLook();
+  change(() => {
+    shown = previous.look;
+    drawn = '';
+    draw();
+  });
+}
+
+$('undo').addEventListener('click', () => travel(history, future));
+$('redo').addEventListener('click', () => travel(future, history));
+
+function leaveWearer() {
+  if (!wearer) return;
+  wearer = null;
+  change(() => {
+    drawn = '';
+    draw();
+  });
+  syncDock();
+}
+
+$('leave').addEventListener('click', () => {
+  remember();
+  leaveWearer();
+});
+addEventListener('orbit:wait', (e) => {
+  lockTurn(Boolean(e.detail));
+  if (e.detail) wait(e.detail.seconds);
+  else stopWaiting();
+});
+/** The person rises out of the mannequin from the stand up, taking its place line by line. */
+async function reveal(front) {
+  const image = $('reveal');
+  image.src = front;
+  await image.decode().catch(() => {});
+  image.hidden = false;
+  $('loader').hidden = true;
+  $('body').toggleAttribute('data-lifting', true);
+  const rise = [{ '--rise': '-16%' }, { '--rise': '100%' }];
+  const timing = { duration: REVEAL_MS, easing: 'cubic-bezier(0.45, 0, 0.15, 1)', fill: 'forwards' };
+  $('body').animate(rise, timing);
+  await image.animate(rise, timing).finished;
+}
+
+addEventListener('orbit:wear', async (e) => {
+  await finishWaiting();
+  lockTurn(true);
+  remember();
+  turnTo(Math.round(angle / 360) * 360);
+  if (motion) await reveal(e.detail.front);
+  wearer = e.detail;
+  syncDock();
+  drawn = '';
+  draw();
+  await Promise.all(frames.map((image) => image.decode().catch(() => {})));
+  stopWaiting();
+  lockTurn(false);
+  // The figure underneath clears behind the person before they let go of it.
+  setTimeout(() => {
+    $('reveal').hidden = true;
+    $('body').removeAttribute('data-lifting');
+    for (const id of ['reveal', 'body']) $(id).getAnimations().forEach((animation) => animation.cancel());
+  }, 320);
+});
+addEventListener('orbit:back', syncTurn);
+window.orbitLook = () => shown;
+
+fetch('api/looks').then((response) => response.json()).then((list) => {
+  saved = list;
+  drawn = '';
+  label();
+});
+
+setPlace(PLACES[0]);
+wearLook(FIRST_LOOK);
+renderLook();
+showWardrobe(false);
+for (const look of [FIRST_LOOK, `${MAN}bare`]) VIEWS.forEach((view) => load(picture(look, view)));
+requestAnimationFrame(frame);
+
+if (import.meta.env.DEV) {
+  window.studio = {
+    set angle(value) { angle = value; tween = null; draw(); },
+    get saved() { return saved; },
+    state,
+    PLACES,
+    setPlace,
+  };
+}
