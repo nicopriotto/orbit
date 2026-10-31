@@ -156,3 +156,75 @@ export async function figures(sheet) {
   }));
 }
 
+async function paint(id, visitor) {
+  const { prompt, references } = request(id);
+  for (let attempt = 1; ; attempt++) {
+    const blocked = images.reserve(visitor);
+    if (blocked) throw Object.assign(new Error(blocked), { status: 429 });
+    let bytes;
+    try {
+      bytes = await edit(prompt, references.map(webp), `look/${id}`);
+    } catch (error) {
+      images.release(visitor);
+      throw error;
+    }
+    mkdirSync(RAW, { recursive: true });
+    mkdirSync(FINISHED, { recursive: true });
+    writeFileSync(`${RAW}/${id}.webp`, bytes);
+    try {
+      const parts = await figures(bytes);
+      for (const [i, part] of parts.entries()) await cut(part, `${FINISHED}/${id}-${VIEWS[i]}.webp`);
+      for (const view of ['front34', 'side']) await faceLeft(`${FINISHED}/${id}-${view}.webp`, view, id.startsWith(MAN) ? 'man-bare' : 'bare');
+      return;
+    } catch (error) {
+      if (attempt === ATTEMPTS) throw error;
+    }
+  }
+}
+
+function make(id, visitor) {
+  if (complete(id)) return Promise.resolve();
+  if (!running.has(id)) running.set(id, paint(id, visitor).finally(() => running.delete(id)));
+  return running.get(id);
+}
+
+function saved() {
+  const looks = { bare: VIEWS, [`${MAN}bare`]: VIEWS };
+  for (const folder of [BUILT, FINISHED]) {
+    for (const name of existsSync(folder) ? readdirSync(folder) : []) {
+      const match = FILE.exec(`/${name}`);
+      if (match && known(match[1])) (looks[match[1]] ??= []).push(match[2]);
+    }
+  }
+  return looks;
+}
+
+export const savedLook = (id) => (known(id) ? finished(id, 'front') : null);
+
+export async function looks(request_, response) {
+  const reply = (status, body) => {
+    response.statusCode = status;
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify(body));
+  };
+  const file = FILE.exec(request_.url.split('?')[0]);
+  if (request_.method === 'GET' && file) {
+    const path = plainLook(file[1]) === 'bare' ? `${BUILT}/${file[1]}-${file[2]}.webp` : known(file[1]) && finished(file[1], file[2]);
+    if (!path) return reply(404, { error: 'Not made yet.' });
+    response.setHeader('Content-Type', 'image/webp');
+    response.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    return response.end(readFileSync(path));
+  }
+  if (request_.method === 'GET') return reply(200, saved());
+  if (request_.method !== 'POST') return reply(405, { error: 'GET or POST only.' });
+  try {
+    const { look } = JSON.parse(await readBody(request_, 1024));
+    if (!known(look)) return reply(400, { error: 'That look is not in the catalogue.' });
+    await make(look, request_.socket.remoteAddress ?? 'unknown');
+    return reply(200, { ok: true });
+  } catch (error) {
+    console.error('look failed', error.status, error.message);
+    if (error.status === 429) return reply(429, { error: error.message });
+    return reply(error.refused ? 422 : 502, { error: 'Muse could not dress this combination. Try another piece.' });
+  }
+}
