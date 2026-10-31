@@ -880,3 +880,145 @@ dialog.store {
   box-shadow: 0 24px 60px rgb(18 12 8 / 0.55);
 }
 
+.store-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: #ece4d6;
+}
+
+.store-bar i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgb(44 33 24 / 0.2);
+}
+
+.store-bar span {
+  flex: 1;
+  margin-left: 8px;
+  padding: 4px 12px 5px;
+  border-radius: 999px;
+  background: #fbf8f2;
+  color: rgb(44 33 24 / 0.62);
+  font: 500 12px/1.2 var(--sans);
+}
+
+.store-page {
+  padding: 18px 24px 24px;
+}
+
+.store-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgb(44 33 24 / 0.14);
+}
+
+.store-head p {
+  margin: 0;
+}
+
+.store .store-brand {
+  color: #2c2118;
+  font: 600 13px/1 var(--sans);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.store .store-demo {
+  padding: 4px 9px 5px;
+  border-radius: 999px;
+  background: rgb(44 33 24 / 0.08);
+  color: rgb(44 33 24 / 0.72);
+  font: 500 12px/1 var(--sans);
+}
+
+.store-demo[hidden] {
+  display: none;
+}
+
+.store h2 {
+  margin-top: 18px;
+}
+
+.store .store-lead {
+  margin: 4px 0 10px;
+  color: rgb(44 33 24 / 0.72);
+}
+
+.store .store-list {
+  padding: 0;
+}
+
+.store .store-list li {
+  grid-template-columns: 46px 1fr auto;
+  margin-top: 0;
+  border-bottom-color: rgb(44 33 24 / 0.12);
+}
+
+.store .store-list i {
+  color: #2c2118;
+}
+
+.store-sum {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 14px;
+  font: 500 15px/1 var(--sans);
+}
+
+.store-sum b {
+  font: 600 22px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.store .store-note {
+  margin: 6px 0 0;
+  color: rgb(44 33 24 / 0.62);
+  font-size: 13px;
+}
+
+.store .pill {
+  background: none;
+  color: #2c2118;
+  box-shadow: inset 0 0 0 1px rgb(44 33 24 / 0.3);
+  backdrop-filter: none;
+}
+
+.store .pill.primary {
+  background: #2c2118;
+  color: var(--paper);
+  box-shadow: none;
+}
+
+/* Back and forward keep to the corner, clear of the main button. */
+.steps {
+  position: fixed;
+  z-index: 10;
+  right: 28px;
+  bottom: 14px;
+  display: flex;
+  gap: 6px;
+}
+
+.steps[hidden] {
+  display: none;
+}
+
+.tag {
+  position: fixed;
+  z-index: 10;
+  left: 28px;
+  bottom: 14px;
+  width: min(calc(50vw - 340px), 380px);
+  min-width: 220px;
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+  backdrop-filter: blur(6px);
+}
+
