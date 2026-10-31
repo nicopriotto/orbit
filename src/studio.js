@@ -301,3 +301,179 @@ function checkout() {
   open(`${STORE}?items=${items.join(',')}`, '_blank', 'noopener');
 }
 
+$('shop').addEventListener('click', shop);
+$('shop-worn').addEventListener('click', shop);
+$('shop-bag').addEventListener('click', shop);
+$('store-checkout').addEventListener('click', checkout);
+for (const id of ['store-close', 'store-back']) $(id).addEventListener('click', () => $('store').close());
+$('store').addEventListener('click', (e) => {
+  if (e.target === $('store')) $('store').close();
+});
+
+function wornRow({ name, file, price }, item) {
+  const row = document.createElement('li');
+  row.innerHTML = `
+    <img src="studio/set/item-${file}.webp" alt="" draggable="false" />
+    <b>${name}</b>
+    <i>${price ? money(price) : 'Included'}</i>`;
+  if (item) {
+    const off = document.createElement('button');
+    off.type = 'button';
+    off.className = 'round';
+    off.setAttribute('aria-label', `Take off ${name}`);
+    off.innerHTML = TAKE_OFF;
+    off.addEventListener('click', () => {
+      if (!$('wardrobe').hasAttribute('data-locked')) toggle(item);
+    });
+    row.append(off);
+  }
+  return row;
+}
+
+/** Everything on the figure, the pieces that come with the look included. */
+function lookRows(removable) {
+  const { top, bottom, outer } = state;
+  const pieces = [outer, top, bottom].filter(Boolean).map((item) => wornRow(item, removable && item));
+  if (pieces.length) pieces.push(wornRow(SNEAKERS));
+  return pieces;
+}
+
+function renderWorn() {
+  $('worn').replaceChildren(...lookRows(true));
+  for (const button of document.querySelectorAll('[data-figure]')) button.setAttribute('aria-pressed', String(button.dataset.figure === figure));
+}
+
+/** Each mannequin keeps what it had on. Changing one never spends: a new look is only made when a piece is picked. */
+function setFigure(next) {
+  if (next === figure || $('wardrobe').hasAttribute('data-locked')) return;
+  remember();
+  leaveWearer();
+  figure = next;
+  renderLook();
+  dress();
+}
+
+for (const button of document.querySelectorAll('[data-figure]')) button.addEventListener('click', () => setFigure(button.dataset.figure));
+
+function unfoldLook(open) {
+  $('tag').toggleAttribute('data-open', open);
+  $('worn').inert = !open;
+  $('look-toggle').setAttribute('aria-expanded', String(open));
+}
+
+$('look-toggle').addEventListener('click', () => unfoldLook(!$('tag').hasAttribute('data-open')));
+
+/* The turn */
+
+let angle = 0;
+let tween = null;
+let drawn = '';
+
+const smoothstep = (t) => t * t * (3 - 2 * t);
+const wrap = (degrees) => ((degrees % 360) + 360) % 360;
+
+/** Neighbouring views swap near the middle of each span. A wide gap swaps almost instantly, or both views would show as a double exposure. */
+function draw() {
+  const wrapped = wrap(angle);
+  const span = STOPS.findIndex((stop, i) => wrapped < STOPS[i + 1].at);
+  const from = STOPS[span];
+  const to = STOPS[span + 1];
+  const progress = (wrapped - from.at) / (to.at - from.at);
+  const fade = to.at - from.at > 45 ? 0.3 : 0.6;
+  const mix = smoothstep(Math.min(Math.max((progress - 0.5 + fade / 2) / fade, 0), 1));
+  const key = `${shown}${span}${mix.toFixed(3)}`;
+  if (key === drawn) return;
+  drawn = key;
+  const paint = (image, stop, opacity) => {
+    const src = source(shown, wearer && stop.at > 90 && stop.at < 270 ? 'back' : stop.view);
+    if (image.getAttribute('src') !== src) image.src = src;
+    image.style.opacity = opacity;
+    image.style.transform = stop.mirror && !wearer ? 'scaleX(-1)' : '';
+  };
+  // The new view comes in over the old one, which only then lets go, so neither the body nor its edges pop.
+  paint(frames[0], from, Math.min(2 * (1 - mix), 1));
+  paint(frames[1], to, Math.min(2 * mix, 1));
+}
+
+function turnTo(target) {
+  if (!motion) {
+    angle = target;
+    return;
+  }
+  const length = Math.max((Math.abs(target - angle) / 180) * TURN_MS, SHORTEST_TURN_MS);
+  tween = { from: angle, to: target, start: performance.now(), length, reach: Math.min(Math.abs(target - angle) / 90, 1) };
+}
+
+let spin = 0;
+
+/** A soft narrowing with a little blur at the middle of a turn. It eases toward its target, so an interrupted turn doesn't jump. */
+function lean(dt, target) {
+  spin += (target - spin) * Math.min(dt * 16, 1);
+  if (spin < 0.002 && !target) spin = 0;
+  $('body').style.transform = spin ? `scaleX(${(1 - SQUEEZE * spin).toFixed(4)})` : '';
+  $('body').style.filter = spin > 0.02 ? `blur(${(BLUR * spin).toFixed(2)}px)` : '';
+}
+
+/** The next angle that has a picture. The visitor's own photos only exist from the front and the back. */
+function step(direction) {
+  const stops = wearer ? [0, 180] : STOPS.slice(0, -1).map((stop) => stop.at);
+  const goal = tween?.to ?? angle;
+  const nearest = stops.reduce((best, at, i) => (Math.abs(((wrap(goal) - at + 540) % 360) - 180) < Math.abs(((wrap(goal) - stops[best] + 540) % 360) - 180) ? i : best), 0);
+  const next = stops[(nearest + direction + stops.length) % stops.length];
+  turnTo(goal + direction * wrap(direction * (next - stops[nearest])));
+  syncPrint();
+}
+
+$('turn-left').addEventListener('click', () => step(1));
+$('turn-right').addEventListener('click', () => step(-1));
+addEventListener('keydown', (e) => {
+  if (document.querySelector('dialog[open]') || e.target.closest?.('.wardrobe') || $('turn-left').disabled) return;
+  if (e.key === 'ArrowLeft') step(1);
+  if (e.key === 'ArrowRight') step(-1);
+});
+
+/* The wardrobe */
+
+const spots = [];
+
+function label() {
+  for (const { item, button, note } of spots) {
+    button.setAttribute('aria-pressed', String(worn(item)));
+    note.textContent = worn(item) ? 'Wearing' : '';
+  }
+}
+
+function createSpot(item) {
+  const spot = document.createElement('div');
+  spot.className = 'spot';
+  spot.style.setProperty('--h', item.length);
+  spot.dataset.slot = item.slot;
+  spot.innerHTML = `
+    <button type="button" class="piece" aria-pressed="false" aria-label="${item.name}, ${money(item.price)}">
+      <svg class="hanger" aria-hidden="true"><use href="#${item.slot === 'bottom' ? 'clips' : 'hook'}" /></svg>
+      <span class="flip">
+        <img src="studio/set/item-${item.file}.webp" alt="" draggable="false" />
+        <img class="reverse" src="studio/set/item-${item.file}-back.webp" alt="" draggable="false" />
+      </span>
+      <b>${item.name}</b>
+      <i>${money(item.price)}</i>
+      <em></em>
+    </button>
+    <button type="button" class="round turn-over" aria-label="Turn over ${item.name}" aria-pressed="false">${TURN_OVER}</button>`;
+  const button = spot.querySelector('.piece');
+  const over = spot.querySelector('.turn-over');
+  button.addEventListener('click', () => {
+    if (!$('wardrobe').hasAttribute('data-locked')) toggle(item);
+  });
+  const turn = (turned) => {
+    spot.toggleAttribute('data-turned', turned);
+    over.setAttribute('aria-pressed', String(turned));
+  };
+  over.addEventListener('click', () => turn(!spot.hasAttribute('data-turned')));
+  spot.addEventListener('pointerleave', (e) => {
+    if (e.pointerType === 'mouse') turn(false);
+  });
+  spots.push({ item, spot, button, note: spot.querySelector('em') });
+  return spot;
+}
+
