@@ -75,3 +75,82 @@
 
     <nav class="places" id="places" aria-label="Places"></nav>
 
+    <aside class="tag" id="tag" aria-live="polite">
+      <div class="worn-fold">
+        <ul class="worn" id="worn" inert></ul>
+      </div>
+      <button type="button" class="tag-head" id="look-toggle" aria-expanded="false" aria-controls="worn">
+        <span class="tag-label">The look</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg>
+        <span class="tag-pieces" id="pieces"></span>
+        <span class="tag-total" id="total"></span>
+      </button>
+      <button type="button" class="tag-shop" id="shop">
+        Shop this look
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </button>
+    </aside>
+
+    <div class="dock">
+      <button type="button" id="shop-worn" class="pill primary" hidden>Shop this look</button>
+      <button type="button" class="pill" id="open-wardrobe" aria-expanded="false" aria-controls="wardrobe">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M6 6v14M18 6v14M12 6v3l-6 5h12l-6-5" /></svg>
+        <span class="label" id="wardrobe-label"><span class="wide">Open the </span>wardrobe</span>
+      </button>
+      <button type="button" id="try" class="pill" disabled>Try it on me</button>
+      <button type="button" id="change-photo" class="pill icon" aria-label="Use another photo" title="Use another photo" hidden>
+        <img id="change-photo-image" alt="" />
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4V8Z" /><circle cx="12" cy="13" r="3.5" /></svg>
+      </button>
+      <button type="button" id="shop-bag" class="pill icon" aria-label="Shop this look" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l1 12H5L6 8ZM9 8V7a3 3 0 0 1 6 0v1" /></svg>
+      </button>
+      <button type="button" id="leave" class="pill" hidden><span class="label"><span class="wide">Back to </span>mannequin</span></button>
+    </div>
+
+    <div class="steps" id="steps" hidden>
+      <button type="button" id="undo" class="pill icon" aria-label="Back to the previous look" title="Back" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7L4 12l5 5M4 12h11a5 5 0 0 1 5 5" /></svg>
+      </button>
+      <button type="button" id="redo" class="pill icon" aria-label="Forward to the next look" title="Forward" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 7l5 5-5 5M20 12H9a5 5 0 0 0-5 5" /></svg>
+      </button>
+    </div>
+
+    <!-- The wardrobe's first rail reaches into the room: the panel opens from where it hangs. -->
+    <button type="button" class="wardrobe-rail" id="wardrobe-rail" aria-label="Open the wardrobe" aria-expanded="false" aria-controls="wardrobe">
+      <span class="hung-rail" aria-hidden="true">
+        <span class="rail-bar"></span>
+        <span class="hung"><svg><use href="#hook" /></svg><img src="studio/set/item-tee-rust.webp" alt="" draggable="false" /></span>
+        <span class="hung"><svg><use href="#hook" /></svg><img src="studio/set/item-tee-breton.webp" alt="" draggable="false" /></span>
+        <span class="hung"><svg><use href="#hook" /></svg><img src="studio/set/item-tee-navy.webp" alt="" draggable="false" /></span>
+      </span>
+      <span class="rail-label">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+        The wardrobe
+      </span>
+    </button>
+
+    <button type="button" class="snap" id="snap" aria-label="Open your photo" hidden>
+      <span class="snap-print"><img id="snap-image" alt="" draggable="false" /></span>
+      <span class="snap-label">Keep this photo</span>
+    </button>
+
+    <aside class="wardrobe" id="wardrobe" aria-labelledby="wardrobe-title">
+      <div class="wardrobe-top" id="wardrobe-top">
+      <div class="wardrobe-head">
+        <h2 id="wardrobe-title">The wardrobe</h2>
+        <div class="figure-switch" role="group" aria-label="Mannequin">
+          <button type="button" data-figure="" aria-pressed="true">Woman</button>
+          <button type="button" data-figure="man-" aria-pressed="false">Man</button>
+        </div>
+        <button type="button" class="surprise" id="surprise">Surprise me</button>
+        <button type="button" class="round" id="wardrobe-close" aria-label="Close the wardrobe">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
+      <nav class="jump" id="jump" aria-label="Kinds of garment"><span class="jump-mark" id="jump-mark"></span></nav>
+      </div>
+      <div class="sections" id="sections"></div>
+    </aside>
+
