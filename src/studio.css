@@ -445,3 +445,144 @@ header p {
   transition: transform 160ms var(--ease-out), box-shadow 160ms ease;
 }
 
+.place img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.74) saturate(0.7);
+  transition: filter 160ms ease;
+}
+
+.place:active {
+  transform: scale(0.95);
+}
+
+/* The chosen room stays in full colour, a size up, inside a bright ring. */
+.place[aria-pressed='true'] {
+  box-shadow: 0 0 0 2px var(--night), 0 0 0 4.5px #f4dfb4;
+  transform: scale(1.06);
+}
+
+.place[aria-pressed='true'] img {
+  filter: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .place:hover img {
+    filter: none;
+  }
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--paper);
+  font: 500 16px/1 var(--sans);
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px var(--line);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+
+.pill.primary {
+  background: var(--brass);
+  color: var(--night);
+  font-weight: 600;
+}
+
+.pill:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pill[hidden] {
+  display: none;
+}
+
+.pill:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.pill.icon {
+  justify-content: center;
+  width: 50px;
+  padding: 0;
+}
+
+.pill svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pill.primary svg {
+  stroke: var(--night);
+}
+
+[data-working] .turn {
+  visibility: hidden;
+}
+
+.dock {
+  position: fixed;
+  z-index: 10;
+  left: 50%;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+}
+
+/* Both ends of the dock match, so whatever sits between them stays over the figure. */
+#open-wardrobe,
+#shop-worn,
+#try,
+#leave {
+  justify-content: center;
+  width: 232px;
+}
+
+/* Stays beside the main button without moving it off the figure's centre. */
+#change-photo {
+  position: absolute;
+  left: 100%;
+  margin-left: 8px;
+  box-shadow: 0 0 0 2px var(--brass);
+}
+
+/* The visitor's own photo, close on the face, says what this button changes. */
+#change-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: 50% 0;
+}
+
+#change-photo svg {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 22px;
+  height: 22px;
+  padding: 4px;
+  border-radius: 50%;
+  background: var(--brass);
+  stroke: var(--night);
+}
+
