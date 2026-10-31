@@ -586,3 +586,155 @@ header p {
   stroke: var(--night);
 }
 
+#try:disabled + #change-photo {
+  display: none;
+}
+
+/* On a phone the rail has no wall to hang from, so the dock opens the wardrobe. */
+@media (min-width: 981px) {
+  #open-wardrobe,
+  #shop-bag {
+    display: none;
+  }
+}
+
+/* The ring around the stand turns the figure; this rail, in the same brass, is where the clothes come from. */
+.wardrobe-rail {
+  position: fixed;
+  z-index: 10;
+  top: clamp(96px, 16vh, 180px);
+  right: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: end;
+  width: clamp(190px, 18vw, 264px);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  cursor: pointer;
+  transition: visibility 0ms;
+  -webkit-tap-highlight-color: transparent;
+}
+
+[data-wardrobe] .wardrobe-rail {
+  visibility: hidden;
+  transition: visibility 0ms 460ms;
+}
+
+.hung-rail {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 0 0 22px;
+  transition: translate 260ms var(--ease-out);
+}
+
+.hung-rail .rail-bar {
+  top: 6px;
+  right: -20px;
+  left: 0;
+  box-shadow: 0 2px 6px rgb(18 12 8 / 0.5);
+}
+
+.hung {
+  position: relative;
+  display: grid;
+  flex: 0 0 clamp(68px, 6.2vw, 96px);
+  align-content: start;
+  justify-items: center;
+  transform-origin: 50% 0;
+  transition: rotate 320ms var(--ease-out);
+}
+
+.hung svg {
+  width: 26px;
+  height: 28px;
+  margin-top: -5px;
+}
+
+.hung img {
+  width: 100%;
+  margin-top: -2px;
+  filter: drop-shadow(0 8px 10px rgb(18 12 8 / 0.42));
+}
+
+.rail-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 2px 16px 0 0;
+  padding: 7px 14px 8px 8px;
+  border-radius: 999px;
+  background: var(--panel);
+  font: 500 18px/1 var(--serif);
+  box-shadow: inset 0 0 0 1px var(--line);
+  backdrop-filter: blur(6px);
+  transition: translate 260ms var(--ease-out);
+}
+
+.rail-label svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: var(--brass);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.wardrobe-rail:active .hung-rail,
+.wardrobe-rail:active .rail-label {
+  translate: -4px 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wardrobe-rail:hover .hung-rail,
+  .wardrobe-rail:hover .rail-label {
+    translate: -14px 0;
+  }
+
+  .wardrobe-rail:hover .hung {
+    rotate: 1.6deg;
+  }
+
+  .wardrobe-rail:hover .hung:nth-child(3) {
+    rotate: 2.4deg;
+    transition-delay: 30ms;
+  }
+
+  .wardrobe-rail:hover .hung:nth-child(4) {
+    rotate: 3deg;
+    transition-delay: 60ms;
+  }
+}
+
+.wardrobe-rail:focus-visible {
+  outline: none;
+}
+
+.wardrobe-rail:focus-visible .rail-label {
+  box-shadow: inset 0 0 0 2px var(--paper);
+}
+
+/* The instant photo comes out on its own beside the figure and develops there. */
+.snap {
+  --width: clamp(160px, 17vw, 248px);
+  position: fixed;
+  z-index: 9;
+  top: 50%;
+  left: calc(25vw - var(--width) / 2);
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: var(--width);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--paper);
+  cursor: pointer;
+  transform: translateY(-58%);
+  -webkit-tap-highlight-color: transparent;
+}
+
