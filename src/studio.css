@@ -295,3 +295,153 @@ input {
   transition: transform 160ms var(--ease-out), background-color 150ms ease;
 }
 
+.round svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.round:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.round:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.round[aria-pressed='true'] {
+  background: var(--brass);
+  color: var(--night);
+}
+
+/* Sits exactly over the stand. Each half of the stand, with the ring around it, turns the figure that way. */
+.turntable {
+  position: absolute;
+  z-index: 1;
+  left: 13%;
+  top: 89.6%;
+  width: 74%;
+  aspect-ratio: 1200 / 601;
+}
+
+/* The ring is drawn through <use>, so its colour has to reach it by inheritance. */
+.turn {
+  --arc: var(--brass);
+  position: absolute;
+  top: 0;
+  width: 58%;
+  height: 112%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: opacity 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#turn-left {
+  left: -8%;
+}
+
+#turn-right {
+  right: -8%;
+  scale: -1 1;
+}
+
+.turn svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform-origin: 100% 49%; /* The middle of the stand. */
+  transition: transform 160ms var(--ease-out);
+}
+
+.turn:active:not(:disabled) svg {
+  transform: scale(0.97);
+}
+
+.turn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.turn-track path,
+.turn-line path {
+  vector-effect: non-scaling-stroke;
+  transition: stroke 150ms ease;
+}
+
+.turn-track path {
+  stroke: rgb(18 12 8 / 0.5);
+  stroke-width: 7px;
+}
+
+.turn-line path {
+  stroke: var(--arc);
+  stroke-width: 2.5px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .turn:hover:not(:disabled) {
+    --arc: #f4dfb4;
+  }
+}
+
+.turn:focus-visible {
+  outline: none;
+  --arc: var(--paper);
+}
+
+header {
+  position: fixed;
+  z-index: 10;
+  top: 22px;
+  left: 28px;
+  padding: 8px 16px 9px;
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+  backdrop-filter: blur(6px);
+}
+
+h1 {
+  margin: 0;
+  font: 600 26px/1 var(--serif);
+  letter-spacing: 0.01em;
+}
+
+header p {
+  margin: 3px 0 0;
+  color: var(--quiet);
+  font-size: 12.5px;
+}
+
+.places {
+  position: fixed;
+  z-index: 10;
+  top: 22px;
+  right: 28px;
+  display: flex;
+  gap: 18px; /* Room for the chosen one's ring, which reaches 6px past the circle. */
+}
+
+.place {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 50%;
+  background: var(--night);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.5);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), box-shadow 160ms ease;
+}
+
