@@ -1453,3 +1453,149 @@ dialog .error {
   transition: opacity 200ms ease, visibility 0ms;
 }
 
+[data-wardrobe] .places {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 120ms ease, visibility 0ms 120ms;
+}
+
+/* The free half can't hold them beside the dock, so they rise to the floor above it. */
+[data-wardrobe] .steps {
+  translate: calc(var(--side) * -1) -78px;
+}
+
+[data-wardrobe] .tag {
+  display: none;
+}
+
+.wardrobe-top {
+  position: sticky;
+  z-index: 3;
+  top: 0;
+  margin: 0 calc(var(--gutter) * -1);
+  padding: 24px var(--gutter) 0;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgb(44 33 24 / 0.12);
+}
+
+.wardrobe-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.figure-switch {
+  display: flex;
+  flex: none;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--tint);
+}
+
+.figure-switch button {
+  min-height: 32px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--ink-soft);
+  font: 500 14px/1 var(--sans);
+  cursor: pointer;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.figure-switch button[aria-pressed='true'] {
+  background: var(--paper);
+  color: #2c2118;
+  box-shadow: 0 1px 3px rgb(44 33 24 / 0.18);
+}
+
+.figure-switch button:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 1px;
+}
+
+.jump {
+  position: relative;
+  display: flex;
+  gap: 22px;
+  margin-top: 12px;
+  overflow: auto hidden;
+  scrollbar-width: none;
+}
+
+.jump button {
+  flex: none;
+  padding: 6px 0 12px;
+  border: 0;
+  background: none;
+  color: var(--ink-soft);
+  font: 500 14px/1 var(--sans);
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.jump button[data-here] {
+  color: #2c2118;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .jump button:hover {
+    color: #2c2118;
+  }
+}
+
+.jump button:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: -2px;
+}
+
+.jump-mark {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brass);
+  transition: transform 260ms var(--ease-out), width 260ms var(--ease-out);
+}
+
+.wardrobe h2 {
+  flex: 1;
+  margin: 0;
+  font: 600 34px/1.1 var(--serif);
+}
+
+.wardrobe .round {
+  background: var(--tint);
+  color: #2c2118;
+}
+
+.surprise {
+  min-height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #2c2118;
+  color: var(--paper);
+  font: 500 14px/1 var(--sans);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out);
+}
+
+.surprise:active {
+  transform: scale(0.97);
+}
+
+.section {
+  margin-top: 26px;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
