@@ -1746,3 +1746,142 @@ dialog .error {
   font-variant-numeric: tabular-nums;
 }
 
+.piece em {
+  min-height: 1.4em;
+  color: #8a6443;
+  font: 500 12px/1.4 var(--sans);
+}
+
+.piece[aria-pressed='true'] em {
+  margin-top: 4px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #5f4029;
+  color: var(--paper);
+}
+
+.turn-over {
+  position: absolute;
+  top: 44px;
+  right: 2px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  opacity: 0;
+  transition: opacity 150ms ease, transform 160ms var(--ease-out);
+}
+
+.turn-over svg {
+  width: 15px;
+  height: 15px;
+}
+
+.spot:hover .turn-over,
+.turn-over:focus-visible,
+.turn-over[aria-pressed='true'] {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .turn-over {
+    opacity: 1;
+  }
+}
+
+.piece:focus-visible,
+.surprise:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+/* A narrow window can't hold the long labels, so they drop their first words. */
+@media (max-width: 1280px) {
+  #open-wardrobe,
+  #shop-worn,
+  #try,
+  #leave {
+    width: 170px;
+  }
+
+  .label .wide {
+    display: none;
+  }
+
+  .label {
+    display: inline-block;
+  }
+
+  .label::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+/* A phone has room for a shorter sheet. The figure and its floor rise together, so the stand stays on the ground. */
+@media (max-width: 980px) {
+  :root {
+    --figure: calc(100dvh - 240px);
+  }
+
+  [data-wardrobe] {
+    --figure: calc(100dvh - 548px);
+  }
+
+  .tag,
+  .wardrobe-rail {
+    display: none;
+  }
+
+  .snap {
+    --width: 92px;
+    top: auto;
+    right: 12px;
+    bottom: 118px;
+    left: auto;
+    transform: none;
+  }
+
+  .snap-label {
+    display: none;
+  }
+
+  .figure {
+    bottom: 152px;
+    transition: height 340ms var(--ease-drawer), bottom 340ms var(--ease-drawer);
+  }
+
+  [data-wardrobe] .figure {
+    bottom: 476px;
+  }
+
+  [data-wardrobe] .plate {
+    translate: 0 -306px;
+  }
+
+  .working {
+    bottom: 72px;
+  }
+
+  [data-wardrobe] .working {
+    bottom: 440px;
+  }
+
+  .wardrobe {
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: auto;
+    height: 430px;
+    padding-bottom: 20px;
+    border-radius: 18px 18px 0 0;
+    transform: translateY(100%);
+  }
+
+  [data-wardrobe] .figure,
+  [data-wardrobe] .dock,
+  [data-wardrobe] .steps,
+  [data-wardrobe] .places {
+    translate: none;
+    scale: none;
+  }
+
