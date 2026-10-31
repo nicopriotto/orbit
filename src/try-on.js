@@ -150,3 +150,107 @@ async function cutOut(base64, green) {
   return placed.toDataURL('image/webp', 0.92);
 }
 
+/** The server sends each image as soon as Muse finishes it, one JSON object per line. */
+async function* parts(response) {
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let text = '';
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) return;
+    text += value;
+    const lines = text.split('\n');
+    text = lines.pop();
+    for (const line of lines) yield JSON.parse(line);
+  }
+}
+
+function refresh() {
+  send.disabled = !(photo && consent.checked);
+}
+
+async function takePhoto(selected) {
+  if (!selected) return;
+  errorLine.hidden = !(errorLine.textContent = file.accept.includes(selected.type) ? '' : 'Use a JPEG, PNG or WebP photo.');
+  if (!errorLine.hidden) return;
+  photo = await shrink(selected);
+  made.clear();
+  preview.src = photo;
+  document.getElementById('change-photo-image').src = photo;
+  preview.hidden = false;
+  hint.hidden = true;
+  refresh();
+}
+
+file.addEventListener('change', () => takePhoto(file.files[0]));
+for (const name of ['dragenter', 'dragover']) {
+  drop.addEventListener(name, (event) => {
+    event.preventDefault();
+    drop.toggleAttribute('data-over', true);
+  });
+}
+drop.addEventListener('dragleave', () => drop.removeAttribute('data-over'));
+drop.addEventListener('drop', (event) => {
+  event.preventDefault();
+  drop.removeAttribute('data-over');
+  takePhoto(event.dataTransfer.files[0]);
+});
+consent.addEventListener('change', refresh);
+document.getElementById('upload-cancel').addEventListener('click', () => dialog.close());
+/** Each look on this photo is paid for once, so one already made is only put back on. */
+function wearOrDress() {
+  const ready = made.get(window.orbitLook());
+  dialog.close();
+  if (ready) window.dispatchEvent(new CustomEvent('orbit:wear', { detail: ready }));
+  else dress();
+}
+
+document.getElementById('try').addEventListener('click', () => {
+  if (photo && consent.checked) wearOrDress();
+  else dialog.showModal();
+});
+changePhoto.addEventListener('click', () => dialog.showModal());
+
+document.getElementById('upload-form').addEventListener('submit', (event) => {
+  event.preventDefault();
+  wearOrDress();
+});
+
+/** Once the visitor has given a photo, every further look goes straight to Muse. */
+async function dress() {
+  const look = window.orbitLook();
+  dialog.close();
+  changePhoto.hidden = false;
+  window.dispatchEvent(new CustomEvent('orbit:wait', { detail: { seconds: SECONDS } }));
+  const images = { look };
+  try {
+    const response = await fetch('api/try-on', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ photo, look }),
+    });
+    if (!response.ok) throw new Error((await response.json()).error);
+    const green = await clothGreen(look);
+    for await (const part of parts(response)) {
+      if (part.front) {
+        images.front = await cutOut(part.front, green);
+        made.set(look, images);
+        window.dispatchEvent(new CustomEvent('orbit:wear', { detail: images }));
+      } else images.back = await cutOut(part.back, green);
+    }
+    if (!images.front) throw new Error();
+  } catch (error) {
+    if (!images.front) {
+      window.dispatchEvent(new CustomEvent('orbit:wait'));
+      errorLine.textContent = error.message || 'Something went wrong. Try again in a moment.';
+      errorLine.hidden = false;
+      dialog.showModal();
+      return;
+    }
+  }
+  // A front without a back stays on show, but it isn't kept: the next attempt starts over.
+  if (!images.back) {
+    images.failed = true;
+    made.delete(look);
+  }
+  window.dispatchEvent(new CustomEvent('orbit:back'));
+}
