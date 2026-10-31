@@ -1165,3 +1165,150 @@ dialog.store {
   list-style: none;
 }
 
+.worn li {
+  display: grid;
+  grid-template-columns: 46px 1fr auto auto;
+  column-gap: 12px;
+  align-items: center;
+  min-height: 62px;
+  border-bottom: 1px solid rgb(205 166 107 / 0.22);
+}
+
+.worn li:first-child {
+  margin-top: 8px;
+}
+
+.worn img {
+  width: 46px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.worn b {
+  font: 500 17px/1.2 var(--serif);
+}
+
+.worn i {
+  color: var(--brass);
+  font: 500 15px/1 var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+
+.worn .round {
+  width: 30px;
+  height: 30px;
+}
+
+.worn .round svg {
+  width: 14px;
+  height: 14px;
+}
+
+dialog {
+  width: min(520px, calc(100vw - 32px));
+  padding: 24px;
+  border: 0;
+  border-radius: 14px;
+  background: #1e1610;
+  color: var(--paper);
+  box-shadow: 0 24px 60px rgb(18 12 8 / 0.5), inset 0 0 0 1px var(--line);
+  opacity: 0;
+  transform: translateY(8px) scale(0.97);
+  transition: opacity 160ms ease, transform 160ms ease, display 160ms allow-discrete, overlay 160ms allow-discrete;
+}
+
+dialog[open] {
+  opacity: 1;
+  transform: none;
+  transition-duration: 260ms;
+  transition-timing-function: var(--ease-out);
+}
+
+dialog::backdrop {
+  background: rgb(18 12 8 / 0);
+  transition: background-color 160ms ease, backdrop-filter 160ms ease, display 160ms allow-discrete, overlay 160ms allow-discrete;
+}
+
+dialog[open]::backdrop {
+  background: rgb(18 12 8 / 0.55);
+  transition-duration: 260ms;
+}
+
+.snap-view[open]::backdrop {
+  background: rgb(18 12 8 / 0.78);
+  backdrop-filter: blur(10px);
+}
+
+@starting-style {
+  dialog[open] {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+
+  dialog[open]::backdrop {
+    background: rgb(18 12 8 / 0);
+    backdrop-filter: blur(0);
+  }
+}
+
+dialog h2 {
+  margin: 0;
+  font: 600 30px/1.1 var(--serif);
+}
+
+dialog p {
+  margin: 6px 0 16px;
+  color: var(--quiet);
+}
+
+.upload-grid {
+  display: grid;
+  grid-template-columns: 188px 1fr;
+  gap: 20px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+dialog .tips-title {
+  margin: 0 0 8px;
+  color: var(--brass);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tips {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: 500 19px/1.2 var(--serif);
+}
+
+.drop {
+  position: relative;
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  height: 286px;
+  transition: box-shadow 160ms ease;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #2c2118;
+  box-shadow: inset 0 0 0 1px rgb(205 166 107 / 0.3);
+  cursor: pointer;
+}
+
+.drop[data-over] {
+  box-shadow: inset 0 0 0 2px var(--brass);
+}
+
+.drop img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
