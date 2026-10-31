@@ -142,3 +142,156 @@ input {
   background: radial-gradient(closest-side, rgb(14 10 7 / var(--shade)) 62%, rgb(14 10 7 / 0));
 }
 
+.contact {
+  position: absolute;
+  left: 30%;
+  right: 30%;
+  top: 96%;
+  height: 3%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(14 10 7 / 0.5), rgb(14 10 7 / 0));
+}
+
+/* Muse's wait, on the figure itself: the seconds are the one thing worth reading while it works. */
+.loader {
+  --size: max(150px, calc(var(--figure) * 0.4));
+  position: absolute;
+  z-index: 2;
+  top: 33%;
+  left: 50%;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  background: var(--panel);
+  color: var(--paper);
+  text-align: center;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 50px rgb(14 10 7 / 0.4);
+  translate: -50% -50%;
+  animation: arrive 320ms var(--ease-out);
+}
+
+.loader[hidden] {
+  display: none;
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+}
+
+.loader svg {
+  position: absolute;
+  inset: 0;
+  overflow: visible;
+}
+
+.loader circle {
+  fill: none;
+  stroke-width: 1.4;
+}
+
+.loader-track {
+  stroke: rgb(205 166 107 / 0.25);
+}
+
+.loader-done {
+  stroke: var(--brass);
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 300ms linear;
+}
+
+#loader-needle {
+  transform-origin: 50% 50%;
+  transition: transform 300ms linear;
+}
+
+.loader .loader-needle {
+  fill: #f4dfb4;
+  stroke: none;
+}
+
+/* Runs out quickly once Muse has answered. */
+.loader[data-finishing] .loader-done,
+.loader[data-finishing] #loader-needle {
+  transition: stroke-dashoffset 400ms var(--ease-out), transform 400ms var(--ease-out);
+}
+
+.loader-hanger {
+  display: block;
+  width: calc(var(--size) * 0.44);
+  height: calc(var(--size) * 0.18);
+  transform-origin: 50% 8%;
+  animation: sway 2200ms ease-in-out infinite alternate;
+}
+
+.loader-hanger svg {
+  position: static;
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes sway {
+  from {
+    rotate: -7deg;
+  }
+
+  to {
+    rotate: 7deg;
+  }
+}
+
+.loader-step {
+  margin: calc(var(--size) * 0.04) 0 0;
+  color: var(--paper);
+  font: 500 calc(var(--size) * 0.098) / 1.1 var(--serif);
+}
+
+/* Both sides of a garment sit back to back. */
+.flip {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 420ms var(--ease-out), opacity 200ms ease, translate 200ms var(--ease-out);
+}
+
+.flip img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+
+.flip .reverse {
+  transform: rotateY(180deg);
+}
+
+.round {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(244 236 223 / 0.08);
+  color: var(--paper);
+  cursor: pointer;
+  transition: transform 160ms var(--ease-out), background-color 150ms ease;
+}
+
