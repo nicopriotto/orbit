@@ -251,9 +251,12 @@ input {
 }
 
 .loader-step {
-  margin: calc(var(--size) * 0.04) 0 0;
+  margin-top: calc(var(--size) * 0.04);
   color: var(--paper);
+  max-width: calc(var(--size) * 0.7);
+  margin-inline: auto;
   font: 500 calc(var(--size) * 0.098) / 1.1 var(--serif);
+  text-wrap: balance;
 }
 
 /* Both sides of a garment sit back to back. */
@@ -1064,6 +1067,13 @@ dialog.snap-view {
   opacity: 0;
   transform: translateY(-8px);
   transition: opacity 180ms ease, transform 240ms var(--ease-out), display 240ms allow-discrete, overlay 240ms allow-discrete;
+}
+
+/* With the wardrobe open, the note stays over the figure's half instead of the wardrobe's title. */
+@media (min-width: 981px) {
+  [data-wardrobe] .toast {
+    left: calc((100% - var(--side)) / 2);
+  }
 }
 
 .toast:popover-open {
