@@ -1932,7 +1932,7 @@ dialog .error {
   .snap {
     --width: 92px;
     top: auto;
-    right: 12px;
+    right: 18px;
     bottom: 118px;
     left: auto;
     transform: none;
@@ -2082,6 +2082,10 @@ dialog .error {
     height: min(calc(100dvh - 180px), calc((100vw - 32px) * 1.222));
   }
 
+  .snap-view:has(.snap-roll:not([hidden])) #snap-full {
+    height: min(calc(100dvh - 250px), calc((100vw - 32px) * 1.222));
+  }
+
   .snap-bar {
     justify-content: center;
   }
@@ -2112,8 +2116,10 @@ dialog .error {
 
   .snap-print,
   .snap-print::after,
-  .snap-label {
+  .snap-label,
+  .roll-print {
     animation: none;
+    transition: none;
   }
 
   dialog,
