@@ -746,15 +746,37 @@ header p {
   visibility: hidden;
 }
 
+/* Up to three prints lie on top of each other, the newest straight-ish and the older ones fanned out underneath. */
+.snap-pile {
+  display: grid;
+  width: 100%;
+}
+
 .snap-print {
   position: relative;
+  grid-area: 1 / 1;
   display: block;
   width: 100%;
   aspect-ratio: 1080 / 1320;
   rotate: -3deg;
   box-shadow: 0 18px 34px rgb(18 12 8 / 0.42), 0 2px 5px rgb(18 12 8 / 0.3);
+  transition: rotate 420ms var(--ease-out), translate 420ms var(--ease-out), scale 160ms var(--ease-out), opacity 300ms ease;
+}
+
+.snap-print[data-at='1'] {
+  rotate: 5deg;
+  translate: 9% -3%;
+  box-shadow: 0 8px 18px rgb(18 12 8 / 0.34);
+}
+
+.snap-print[data-at='2'] {
+  rotate: -9deg;
+  translate: -8% -1%;
+  box-shadow: 0 8px 18px rgb(18 12 8 / 0.3);
+}
+
+.snap-print[data-fresh] {
   animation: snap-out 640ms var(--ease-out) 700ms both;
-  transition: rotate 220ms var(--ease-out), scale 160ms var(--ease-out);
 }
 
 .snap-print img {
