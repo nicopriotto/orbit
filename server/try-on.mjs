@@ -3,6 +3,8 @@
 import { readFileSync } from 'node:fs';
 import { savedLook } from './looks.mjs';
 import { LOOKS, plainLook } from '../src/wardrobe.js';
+import sharp from 'sharp';
+import { segment } from './meta.mjs';
 import { allowance, edit, readBody } from './muse.mjs';
 
 const MAX_BODY = 8 * 1024 * 1024;
@@ -13,14 +15,34 @@ const allowed = allowance('.try-on-counts.json', Number(process.env.TRY_ON_DAILY
   visitor: 'You have reached your limit for today.',
 });
 
+/**
+ * SAM 3.1 says which pixels are the person, so the page never cuts a hole in something green they wear, and never
+ * keeps a stray patch of backdrop. The chroma key still draws the fine edge of hair and fingers. Without SAM the page
+ * falls back to the chroma key alone.
+ */
+async function personMask(bytes) {
+  try {
+    const found = await segment(bytes, 'image/webp', 'person');
+    if (!found) return null;
+    const png = await sharp(found.alpha, { raw: { width: found.width, height: found.height, channels: 1 } }).png({ compressionLevel: 9 }).toBuffer();
+    return png.toString('base64');
+  } catch (error) {
+    console.error('try-on mask failed', error.status, error.message);
+    return null;
+  }
+}
+
 async function dress(photo, look, send) {
   const view = (name) => ({ bytes: readFileSync(savedLook(look).replace('-front.webp', `-${name}.webp`)), type: 'image/webp' });
   const { outer, top } = LOOKS.get(plainLook(look));
   const under = outer && !top ? 'Under the open jacket the person wears a plain white tee. ' : ''; // A mannequin can go without one; a shopper does not.
   const front = await edit(`Show the person from the first image wearing exactly the outfit on the mannequin in the second image: same garments, colours, fabric and fit, including the white sneakers. ${under}Keep the person's face, skin, hair and body shape exactly. Standing relaxed, facing the camera, arms at the sides. ${GREEN}`, [photo, view('front')], 'try-on');
-  send({ front: front.toString('base64') });
-  const back = await edit(`The first image shows a person. Show the same person, seen from directly behind, wearing the same outfit, matching the second image for the pose, garments and framing. Keep the person's hair and body shape exactly. ${GREEN}`, [{ bytes: front, type: 'image/webp' }, view('back')], 'try-on');
-  send({ back: back.toString('base64') });
+  // The back starts at once; SAM reads the front meanwhile, so the front is out about as soon as before.
+  const backing = edit(`The first image shows a person. Show the same person, seen from directly behind, wearing the same outfit, matching the second image for the pose, garments and framing. Keep the person's hair and body shape exactly. ${GREEN}`, [{ bytes: front, type: 'image/webp' }, view('back')], 'try-on');
+  backing.catch(() => {}); // Handled below; this only keeps an early failure from going unheard.
+  send({ front: front.toString('base64'), frontMask: await personMask(front) });
+  const back = await backing;
+  send({ back: back.toString('base64'), backMask: await personMask(back) });
 }
 
 export async function tryOn(request, response) {
