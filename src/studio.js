@@ -38,8 +38,9 @@ const REVEAL_MS = 1200; // The person rising out of the mannequin: the one momen
 const HISTORY = 20;
 const FIRST_LOOK = 'jacket-chinos'; // Already saved, so the first visit spends nothing and Try it on me works from the start.
 const STORE = import.meta.env.VITE_STORE_URL; // The brand's cart. It receives the look's pieces as ?items=a,b,c.
-const BACK_WAIT = 'Muse is making the back';
-const BACK_FAILED = 'The back did not come through';
+// A phone only has the gap between the name and Back/Forward for it, so it says less there.
+const BACK_WAIT = matchMedia('(max-width: 600px)').matches ? 'Making the back' : 'Muse is making the back';
+const BACK_FAILED = matchMedia('(max-width: 600px)').matches ? 'No back this time' : 'The back did not come through';
 
 const $ = (id) => document.getElementById(id);
 const state = { top: null, bottom: null, outer: null };
@@ -675,7 +676,8 @@ function syncDock() {
 
 let printing = 0; // Only the print of what is on the stand now gets shown.
 let printed = {}; // What the live print was made from.
-let prints = []; // The pile, newest first: { id, front, back, caption, place, look, at }. The pile shows the front.
+let prints = []; // The pile, newest first: { id, front, back, caption, place, look, person, at }. The pile shows the front.
+let replacing = null; // The print a Make it again replaces, once the new one is out.
 const printIds = new WeakMap(); // Which print belongs to each try-on, so a new room redoes it instead of adding one.
 const printUrls = new Map();
 let liveId = null; // The print of whoever is on the stand now.
@@ -728,8 +730,16 @@ async function syncPrint() {
     id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     printIds.set(person, id);
   } else forget(id);
-  const print = { id, front, back: rear, caption, place: room.name, look: person.look, at: Date.now() };
+  // The person's own images go with the print, so Wear this again can put them back on the stand for free.
+  const print = { id, front, back: rear, caption, place: room.name, look: person.look, person: { front: person.front, back: person.back ?? null }, at: Date.now() };
   prints = [print, ...prints.filter((entry) => entry.id !== id)];
+  if (fresh && replacing) {
+    const old = replacing;
+    replacing = null;
+    prints = prints.filter((entry) => entry.id !== old);
+    dropPrint(old);
+    forget(old);
+  }
   liveId = id;
   for (const gone of await keepPrint(print, prints)) forget(gone);
   prints = prints.slice(0, KEEP);
