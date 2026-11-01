@@ -1,6 +1,10 @@
 import { KEEP, dropPrint, keepPrint, loadPrints } from './album.js';
 import { APP_NAME, makePrint } from './print.js';
-import { KINDS, LOOKS, MAN, UNDER, WARDROBE, lookId, plainLook } from './wardrobe.js';
+import { KINDS, LOOKS, MAN, UNDER, WARDROBE, lookId, plainLook, setStoreItems } from './wardrobe.js';
+import './atelier.js';
+
+// The store's own garments join the catalogue before anything is drawn. Without the API the base catalogue is enough.
+setStoreItems(await fetch('api/catalog').then((response) => (response.ok ? response.json() : [])).catch(() => []));
 
 // Zoom crops each photo from the bottom, far enough that the wall meets the floor behind the stand, not under it.
 const PLACES = [
@@ -114,12 +118,12 @@ function showProgress(share) {
 let waiting = null;
 
 /** Muse gives no progress of its own, so this slows as it climbs and never quite arrives. Only an answer finishes it. */
-function wait(seconds) {
+function wait(seconds, steps = STEPS) {
   clearInterval(waiting);
   const start = performance.now();
   const tick = () => {
     const elapsed = (performance.now() - start) / 1000;
-    $('loader-step').textContent = STEPS[Math.min(Math.floor(elapsed / STEP_SECONDS), STEPS.length - 1)];
+    $('loader-step').textContent = steps[Math.min(Math.floor(elapsed / STEP_SECONDS), steps.length - 1)];
     showProgress(0.94 * (1 - Math.exp((-2.2 * elapsed) / seconds)));
   };
   notice('');
