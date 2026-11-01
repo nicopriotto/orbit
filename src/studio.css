@@ -1885,3 +1885,149 @@ dialog .error {
     scale: none;
   }
 
+  [data-wardrobe] .working {
+    translate: none;
+  }
+
+  .section {
+    margin-top: 16px;
+  }
+
+  .pill {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 15px;
+  }
+
+  .pill.icon {
+    width: 44px;
+    padding: 0;
+  }
+
+  .steps {
+    top: 16px;
+    right: 16px;
+    bottom: auto;
+    gap: 4px;
+  }
+
+  header {
+    top: 16px;
+    left: 16px;
+  }
+
+  .places {
+    top: 88px;
+    right: auto;
+    left: 16px;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .place {
+    width: 38px;
+    height: 38px;
+  }
+
+  .dock {
+    bottom: 14px;
+    left: 16px;
+    right: 16px;
+    gap: 6px;
+    transform: none;
+  }
+
+  #shop-bag {
+    flex: none;
+  }
+
+  #change-photo {
+    position: static;
+    flex: none;
+    margin: 0;
+  }
+
+  .wardrobe {
+    --gutter: 16px;
+  }
+
+  .wardrobe-top {
+    padding-top: 12px;
+  }
+
+  .wardrobe h2 {
+    display: none;
+  }
+
+  .wardrobe-head {
+    justify-content: space-between;
+  }
+
+  .jump {
+    gap: 18px;
+  }
+
+  .upload-grid {
+    grid-template-columns: 132px 1fr;
+    gap: 14px;
+  }
+
+  .drop {
+    height: 210px;
+  }
+
+  .tips {
+    font-size: 17px;
+  }
+
+  #snap-full {
+    height: min(calc(100dvh - 180px), calc((100vw - 32px) * 1.222));
+  }
+
+  .snap-bar {
+    justify-content: center;
+  }
+
+  #open-wardrobe,
+  #shop-worn,
+  #try,
+  #leave {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+    padding: 0 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flip,
+  .loader-hanger,
+  .plate,
+  .stand,
+  .wardrobe {
+    transition: none;
+  }
+
+  .body {
+    transition: none;
+  }
+
+  .snap-print,
+  .snap-print::after,
+  .snap-label {
+    animation: none;
+  }
+
+  dialog,
+  dialog::backdrop {
+    transition: none;
+  }
+
+  dialog {
+    transform: none;
+  }
+
+  .snap-print::after {
+    display: none;
+  }
+}
