@@ -1,3 +1,4 @@
+import { KEEP, dropPrint, keepPrint, loadPrints } from './album.js';
 import { APP_NAME, makePrint } from './print.js';
 import { KINDS, LOOKS, MAN, UNDER, WARDROBE, lookId, plainLook } from './wardrobe.js';
 
@@ -670,43 +671,150 @@ function syncDock() {
   syncPrint();
 }
 
-/* The keepsake */
+/* The keepsake: one instant photo per try-on, piled up beside the figure and kept in this browser */
 
 let printing = 0; // Only the print of what is on the stand now gets shown.
-let printed = {}; // What the print on show was made from, and the finished file.
+let printed = {}; // What the live print was made from.
+let prints = []; // The pile, newest first: { id, blob, caption, place, at }.
+const printIds = new WeakMap(); // Which print belongs to each try-on, so a new room redoes it instead of adding one.
+const printUrls = new Map();
+let liveId = null; // The print of whoever is on the stand now.
+let opened = null; // The print open in the viewer.
 
-/** Develops once per side of the person and room, and leaves with the person. */
+const urlOf = (print) => {
+  if (!printUrls.has(print.id)) printUrls.set(print.id, URL.createObjectURL(print.blob));
+  return printUrls.get(print.id);
+};
+const forget = (id) => {
+  URL.revokeObjectURL(printUrls.get(id));
+  printUrls.delete(id);
+};
+const fileOf = (print) => {
+  const day = new Date(print.at).toISOString().slice(0, 10);
+  return new File([print.blob], `${APP_NAME.toLowerCase()}-${day}-${print.id.slice(-4)}.jpg`, { type: 'image/jpeg' });
+};
+
+/** Develops once per side of the person and room, and stays on the pile after they leave. */
 async function syncPrint() {
   const side = wrap(tween?.to ?? angle) === 180 ? wearer?.back : wearer?.front;
-  if (side === printed.side && room === printed.room) return;
+  if (wearer === printed.person && side === printed.side && room === printed.room) return;
   const ticket = ++printing;
-  printed = { side, room };
+  printed = { person: wearer, side, room };
   if (!wearer) {
-    $('snap').hidden = true;
+    liveId = null;
+    renderPile();
     return;
   }
-  const { top, bottom, outer } = LOOKS.get(plainLook(wearer.look));
+  const person = wearer;
+  const { top, bottom, outer } = LOOKS.get(plainLook(person.look));
   const caption = [outer, top, bottom].filter(Boolean).slice(0, 2).map((item) => item.name).join(', ');
   const blob = await makePrint({ person: side, place: room, caption });
   if (ticket !== printing) return;
-  URL.revokeObjectURL($('snap-image').src);
-  const url = URL.createObjectURL(blob);
-  const name = `${APP_NAME.toLowerCase()}-look.jpg`;
-  printed.file = new File([blob], name, { type: 'image/jpeg' });
-  $('snap-image').src = url;
-  $('snap-full').src = url;
-  $('snap-save').href = url;
-  $('snap-save').download = name;
-  $('snap-share').hidden = !navigator.canShare?.({ files: [printed.file] });
-  $('snap').hidden = false;
+  let id = printIds.get(person);
+  const fresh = !id || !prints.some((print) => print.id === id);
+  if (fresh) {
+    id = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    printIds.set(person, id);
+  } else forget(id);
+  const print = { id, blob, caption, place: room.name, at: Date.now() };
+  prints = [print, ...prints.filter((entry) => entry.id !== id)];
+  liveId = id;
+  for (const gone of await keepPrint(print, prints)) forget(gone);
+  prints = prints.slice(0, KEEP);
+  renderPile(fresh ? id : null);
+  if ($('snap-view').open && (opened === id || fresh)) showPrint(id);
 }
 
-$('snap').addEventListener('click', () => $('snap-view').showModal());
+const PILE = 3; // Prints drawn in the pile; the rest are counted on its label.
+const DEVELOP_MS = 3800; // Its way out and the photo developing, as timed in the stylesheet.
+
+function renderPile(fresh) {
+  const pile = $('snap-pile');
+  const shown = prints.slice(0, PILE);
+  const kept = new Map([...pile.children].map((card) => [card.dataset.id, card]));
+  for (const [id, card] of kept) if (!shown.some((print) => print.id === id)) card.remove();
+  shown.forEach((print, index) => {
+    let card = kept.get(print.id);
+    if (!card) {
+      card = document.createElement('span');
+      card.className = 'snap-print';
+      card.dataset.id = print.id;
+      card.innerHTML = '<img alt="" draggable="false" />';
+      // It comes out and develops once; moving it in the page later would replay that, so the pile only reorders by z-index.
+      if (print.id === fresh) {
+        card.toggleAttribute('data-fresh', true);
+        setTimeout(() => card.removeAttribute('data-fresh'), DEVELOP_MS);
+      }
+      pile.append(card);
+    }
+    card.querySelector('img').src = urlOf(print);
+    card.dataset.at = index;
+    card.style.zIndex = PILE - index;
+  });
+  const count = prints.length;
+  $('snap-label').textContent = count > 1 ? `Your photos · ${count}` : 'Keep this photo';
+  $('snap').setAttribute('aria-label', count > 1 ? `Open your ${count} photos` : 'Open your photo');
+  $('snap').hidden = !count;
+}
+
+function showPrint(id) {
+  const print = prints.find((entry) => entry.id === id) ?? prints[0];
+  if (!print) {
+    $('snap-view').close();
+    return;
+  }
+  opened = print.id;
+  const url = urlOf(print);
+  const file = fileOf(print);
+  $('snap-full').src = url;
+  $('snap-save').href = url;
+  $('snap-save').download = file.name;
+  $('snap-share').hidden = !navigator.canShare?.({ files: [file] });
+  // Only the photo of whoever is on the stand can still change room.
+  $('snap-places').hidden = print.id !== liveId;
+  const roll = $('snap-roll');
+  roll.hidden = prints.length < 2;
+  roll.replaceChildren(...prints.map((entry, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'roll-print';
+    button.setAttribute('aria-label', `Photo ${index + 1} of ${prints.length}`);
+    button.setAttribute('aria-pressed', String(entry.id === opened));
+    button.innerHTML = `<img src="${urlOf(entry)}" alt="" draggable="false" />`;
+    button.addEventListener('click', () => showPrint(entry.id));
+    return button;
+  }));
+  roll.querySelector('[aria-pressed="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+$('snap').addEventListener('click', () => {
+  showPrint(prints[0]?.id);
+  $('snap-view').showModal();
+});
 $('snap-close').addEventListener('click', () => $('snap-view').close());
 $('snap-view').addEventListener('click', (e) => {
   if (e.target === $('snap-view')) $('snap-view').close();
 });
-$('snap-share').addEventListener('click', () => navigator.share({ files: [printed.file], title: APP_NAME }).catch(() => {}));
+$('snap-share').addEventListener('click', () => {
+  const print = prints.find((entry) => entry.id === opened);
+  if (print) navigator.share({ files: [fileOf(print)], title: APP_NAME }).catch(() => {});
+});
+$('snap-delete').addEventListener('click', async () => {
+  const index = prints.findIndex((entry) => entry.id === opened);
+  if (index < 0) return;
+  const [gone] = prints.splice(index, 1);
+  await dropPrint(gone.id);
+  // The person stays on the stand without a photo until the room or side changes.
+  if (gone.id === liveId) liveId = null;
+  renderPile();
+  showPrint(prints[Math.min(index, prints.length - 1)]?.id);
+  forget(gone.id);
+});
+
+loadPrints().then((saved) => {
+  prints = [...prints, ...saved.filter((print) => !prints.some((entry) => entry.id === print.id))].slice(0, KEEP);
+  renderPile();
+});
 
 function remember() {
   history.push({ look: shown, wearer });
