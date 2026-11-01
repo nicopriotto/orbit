@@ -210,6 +210,14 @@ document.getElementById('try').addEventListener('click', () => {
 });
 changePhoto.addEventListener('click', () => dialog.showModal());
 
+// Make it again: only for the photo given in this visit, and only for the look on the stand now.
+window.orbitCanRedo = (look) => Boolean(photo && consent.checked && made.has(look) && look === window.orbitLook());
+window.addEventListener('orbit:redo', (event) => {
+  if (!window.orbitCanRedo(event.detail.look)) return;
+  made.delete(event.detail.look);
+  dress();
+});
+
 document.getElementById('upload-form').addEventListener('submit', (event) => {
   event.preventDefault();
   wearOrDress();
