@@ -850,6 +850,47 @@ dialog.snap-view {
   box-shadow: none;
 }
 
+/* The close button sits on the print's corner, so the bar below only holds what you do with the photo. */
+.snap-frame {
+  position: relative;
+  width: fit-content;
+  margin-inline: auto;
+}
+
+.snap-x {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  width: 40px;
+  height: 40px;
+  background: var(--night);
+  box-shadow: inset 0 0 0 1px var(--line), 0 6px 16px rgb(18 12 8 / 0.5);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .snap-x:hover {
+    background: #2a1f16;
+  }
+}
+
+.snap-x:focus-visible,
+.snap-icon:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+/* Delete, Make it again and Share say what they are with an icon, at the height of the pills beside them. */
+.snap-icon {
+  width: 50px;
+  height: 50px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.snap-icon[hidden] {
+  display: none;
+}
+
 #snap-full {
   display: block;
   width: auto;
