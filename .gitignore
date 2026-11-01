@@ -6,3 +6,6 @@ cache/raw
 .muse-usage.jsonl
 .try-on-counts.json
 .look-counts.json
+cache/catalog
+.catalog-counts.json
+cache/looks/*shop-*
