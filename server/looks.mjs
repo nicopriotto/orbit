@@ -32,8 +32,9 @@ const webp = (path) => ({ bytes: readFileSync(path), type: 'image/webp' });
 const finished = (id, view) => [`${BUILT}/${id}-${view}.webp`, `${FINISHED}/${id}-${view}.webp`].find(existsSync);
 const complete = (id) => VIEWS.every((view) => finished(id, view));
 const garments = ({ top, bottom, outer }) => [outer, top, bottom].filter(Boolean);
-const front = (item) => `public/studio/raw/green/${item.file}.webp`;
-const back = (item) => `public/studio/back/${item.file}.webp`;
+// A store's garments keep their green references next to their other files.
+const front = (item) => (item.store ? `cache/catalog/files/${item.id}-green.webp` : `public/studio/raw/green/${item.file}.webp`);
+const back = (item) => (item.store ? `cache/catalog/files/${item.id}-green-back.webp` : `public/studio/back/${item.file}.webp`);
 
 function request(id) {
   const look = LOOKS.get(plainLook(id));
