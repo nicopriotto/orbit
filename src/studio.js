@@ -805,28 +805,84 @@ function showPrint(id, side = 'front') {
 }
 
 $('snap').addEventListener('click', () => {
-  showPrint(prints[0]?.id);
+  // The photo of whoever is on the stand opens on the side they are showing.
+  showPrint(prints[0]?.id, prints[0]?.id === liveId && facingBack() ? 'back' : 'front');
   $('snap-view').showModal();
 });
+for (const button of $('snap-sides').children) button.addEventListener('click', () => showPrint(opened, button.dataset.side));
 $('snap-close').addEventListener('click', () => $('snap-view').close());
 $('snap-view').addEventListener('click', (e) => {
   if (e.target === $('snap-view')) $('snap-view').close();
 });
 $('snap-share').addEventListener('click', () => {
   const print = prints.find((entry) => entry.id === opened);
-  if (print) navigator.share({ files: [fileOf(print)], title: APP_NAME }).catch(() => {});
+  if (print) navigator.share({ files: [fileOf(print, openedSide)], title: APP_NAME }).catch(() => {});
 });
-$('snap-delete').addEventListener('click', async () => {
+
+/** Puts an older photo's look back on the mannequin. It was dressed before, so it is saved and costs nothing. */
+$('snap-wear').addEventListener('click', () => {
+  const print = prints.find((entry) => entry.id === opened);
+  if (!print) return;
+  $('snap-view').close();
+  remember();
+  leaveWearer();
+  wearLook(print.look);
+  renderLook();
+  dress();
+});
+
+/** A deleted photo leaves at once, and is only gone for good when its Undo runs out. */
+function bin() {
+  if (!binned) return;
+  clearTimeout(binned.timer);
+  dropPrint(binned.print.id);
+  forget(binned.print.id);
+  binned = null;
+}
+
+function hideToast() {
+  if ($('toast').matches(':popover-open')) $('toast').hidePopover();
+}
+
+/** An open viewer makes the rest of the page inert, so the note lives inside it while it is open. */
+function showToast() {
+  hideToast();
+  ($('snap-view').open ? $('snap-view') : document.body).append($('toast'));
+  $('toast').showPopover();
+}
+
+$('snap-view').addEventListener('close', () => {
+  if (!$('toast').matches(':popover-open')) return;
+  showToast();
+});
+
+$('snap-delete').addEventListener('click', () => {
   const index = prints.findIndex((entry) => entry.id === opened);
   if (index < 0) return;
-  const [gone] = prints.splice(index, 1);
-  await dropPrint(gone.id);
-  // The person stays on the stand without a photo until the room or side changes.
-  if (gone.id === liveId) liveId = null;
+  bin();
+  const [print] = prints.splice(index, 1);
+  binned = { print, index, live: print.id === liveId, timer: setTimeout(() => { bin(); hideToast(); }, UNDO_MS) };
+  // The person stays on the stand without a photo until the room changes or Undo brings it back.
+  if (binned.live) liveId = null;
   renderPile();
   showPrint(prints[Math.min(index, prints.length - 1)]?.id);
-  forget(gone.id);
+  $('toast-text').textContent = 'Photo deleted';
+  showToast();
 });
+
+$('toast-undo').addEventListener('click', () => {
+  if (!binned) return;
+  clearTimeout(binned.timer);
+  const { print, index, live } = binned;
+  binned = null;
+  prints.splice(Math.min(index, prints.length), 0, print);
+  if (live && printIds.get(wearer) === print.id) liveId = print.id;
+  renderPile();
+  if ($('snap-view').open) showPrint(print.id);
+  hideToast();
+});
+addEventListener('pagehide', bin);
+addEventListener('orbit:back', syncPrint);
 
 loadPrints().then((saved) => {
   prints = [...prints, ...saved.filter((print) => !prints.some((entry) => entry.id === print.id))].slice(0, KEEP);
