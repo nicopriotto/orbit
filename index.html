@@ -155,7 +155,10 @@
 
     <dialog class="snap-view" id="snap-view" aria-label="Your photos">
       <div class="snap-frame">
-        <img id="snap-full" alt="You wearing the look, as an instant photo" draggable="false" />
+        <div class="snap-card" id="snap-card">
+          <img id="snap-full" alt="You wearing the look, as an instant photo" draggable="false" />
+          <img id="snap-full-back" alt="" draggable="false" hidden />
+        </div>
         <button type="button" class="round snap-x" id="snap-close" aria-label="Close">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
