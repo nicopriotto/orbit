@@ -774,9 +774,33 @@ function renderPile(fresh) {
     card.style.zIndex = PILE - index;
   });
   const count = prints.length;
-  $('snap-label').textContent = count > 1 ? `Your photos · ${count}` : 'Keep this photo';
   $('snap').setAttribute('aria-label', count > 1 ? `Open your ${count} photos` : 'Open your photo');
   $('snap').hidden = !count;
+}
+
+let turning = null; // The print turning over in the viewer, so a quick second tap waits for it.
+
+/** Turns the print over like a card for Front and Back, and lets a different photo fade in. */
+async function swapPrint(url, how) {
+  const image = $('snap-full');
+  if (!motion || !how || !image.src) {
+    image.src = url;
+    return;
+  }
+  await turning;
+  const out = how === 'turn'
+    ? [{ transform: 'perspective(1400px) rotateY(0)' }, { transform: 'perspective(1400px) rotateY(90deg)' }]
+    : [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.985)' }];
+  const back = how === 'turn'
+    ? [{ transform: 'perspective(1400px) rotateY(-90deg)' }, { transform: 'perspective(1400px) rotateY(0)' }]
+    : [{ opacity: 0, transform: 'scale(0.985)' }, { opacity: 1, transform: 'scale(1)' }];
+  turning = (async () => {
+    await image.animate(out, { duration: how === 'turn' ? 170 : 120, easing: 'cubic-bezier(0.55, 0, 1, 0.45)' }).finished;
+    image.src = url;
+    await image.decode().catch(() => {});
+    await image.animate(back, { duration: how === 'turn' ? 260 : 220, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }).finished;
+  })();
+  await turning;
 }
 
 function showPrint(id, side = 'front') {
@@ -785,11 +809,13 @@ function showPrint(id, side = 'front') {
     $('snap-view').close();
     return;
   }
+  const before = { id: opened, side: openedSide };
   opened = print.id;
   openedSide = side === 'back' && print.back ? 'back' : 'front';
   const url = urlOf(print, openedSide);
   const file = fileOf(print, openedSide);
-  $('snap-full').src = url;
+  const open = $('snap-view').open;
+  swapPrint(url, !open ? null : before.id !== opened ? 'fade' : before.side !== openedSide ? 'turn' : null);
   $('snap-save').href = url;
   $('snap-save').download = file.name;
   $('snap-share').hidden = !navigator.canShare?.({ files: [file] });
