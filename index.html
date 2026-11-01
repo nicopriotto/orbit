@@ -143,6 +143,10 @@
           <button type="button" data-figure="" aria-pressed="true">Woman</button>
           <button type="button" data-figure="man-" aria-pressed="false">Man</button>
         </div>
+        <button type="button" class="add-garment" id="add-garment" aria-label="Add a garment">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+          <span>Add a garment</span>
+        </button>
         <button type="button" class="surprise" id="surprise">Surprise me</button>
         <button type="button" class="round" id="wardrobe-close" aria-label="Close the wardrobe">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
@@ -184,6 +188,79 @@
           <a class="pill primary" id="snap-save">Download</a>
         </div>
       </div>
+    </dialog>
+
+    <!-- A store adds a garment: Muse Spark reads it, SAM 3.1 cuts it out, and it hangs in the wardrobe. -->
+    <dialog class="atelier" id="atelier" aria-labelledby="atelier-title">
+      <header class="atelier-head">
+        <div>
+          <h2 id="atelier-title">Add a garment</h2>
+          <p>Two photos in. Muse Spark reads the garment, SAM 3.1 cuts it out.</p>
+        </div>
+        <button type="button" class="round atelier-x" id="atelier-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </header>
+
+      <ol class="flow" id="flow" aria-label="Steps">
+        <li data-step="photos" data-state="active"><span class="flow-dot"><i></i></span><b>Photos</b><em>Front and back</em></li>
+        <li data-step="spark"><span class="flow-dot"><i></i></span><b>Reads it</b><em>Muse Spark 1.3</em></li>
+        <li data-step="sam"><span class="flow-dot"><i></i></span><b>Cuts it out</b><em>SAM 3.1</em></li>
+        <li data-step="hang"><span class="flow-dot"><i></i></span><b>Hangs it</b><em>In the wardrobe</em></li>
+      </ol>
+
+      <div class="atelier-body">
+        <div class="shots">
+          <label class="shot" data-side="front">
+            <input type="file" accept="image/jpeg,image/png,image/webp" hidden />
+            <span class="shot-frame">
+              <img class="shot-photo" alt="" draggable="false" hidden />
+              <img class="shot-cut" alt="" draggable="false" hidden />
+              <svg class="shot-line" aria-hidden="true"><path /></svg>
+              <span class="shot-scan" aria-hidden="true"></span>
+              <span class="shot-empty">
+                <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 12a4 4 0 1 1 4 4c-2 0-4 1.2-4 3.6V21M24 21L6 33.5a2 2 0 0 0 1.1 3.6h33.8a2 2 0 0 0 1.1-3.6L24 21" /></svg>
+                <b>Front</b>
+                <small>Drop a photo or choose one</small>
+              </span>
+            </span>
+            <span class="shot-tag">Front</span>
+          </label>
+          <label class="shot" data-side="back">
+            <input type="file" accept="image/jpeg,image/png,image/webp" hidden />
+            <span class="shot-frame">
+              <img class="shot-photo" alt="" draggable="false" hidden />
+              <img class="shot-cut" alt="" draggable="false" hidden />
+              <svg class="shot-line" aria-hidden="true"><path /></svg>
+              <span class="shot-scan" aria-hidden="true"></span>
+              <span class="shot-empty">
+                <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 12a4 4 0 1 1 4 4c-2 0-4 1.2-4 3.6V21M24 21L6 33.5a2 2 0 0 0 1.1 3.6h33.8a2 2 0 0 0 1.1-3.6L24 21" /></svg>
+                <b>Back</b>
+                <small>Drop a photo or choose one</small>
+              </span>
+            </span>
+            <span class="shot-tag">Back</span>
+          </label>
+        </div>
+
+        <div class="reading" id="reading">
+          <p class="model-note" id="model-note">Add both sides of the garment, flat or on a hanger, on any background.</p>
+          <form class="entry" id="entry" autocomplete="off" hidden>
+            <label class="field wide"><span>Name</span><input name="name" maxlength="48" required /></label>
+            <label class="field"><span>Kind</span><select name="kind" required></select></label>
+            <label class="field"><span>Price</span><span class="price"><i>$</i><input name="price" type="number" inputmode="numeric" min="1" max="100000" step="1" placeholder="0" required /></span></label>
+            <label class="field"><span>Colour</span><input name="colour" maxlength="32" /></label>
+            <label class="field"><span>Material</span><input name="material" maxlength="32" /></label>
+            <label class="field wide"><span>Description</span><textarea name="description" rows="2" maxlength="160"></textarea></label>
+          </form>
+          <p class="atelier-error" id="atelier-error" role="alert" hidden></p>
+        </div>
+      </div>
+
+      <footer class="atelier-foot">
+        <button type="button" class="pill quiet" id="atelier-again" hidden>Start over</button>
+        <button type="button" class="pill primary" id="atelier-go" disabled>Read the garment</button>
+      </footer>
     </dialog>
 
     <div class="toast" id="toast" popover="manual" role="status">
