@@ -824,7 +824,9 @@ function showPrint(id, side = 'front') {
   // Only the photo of whoever is on the stand can still change room; the others can put their look back on.
   const live = print.id === liveId;
   $('snap-places').hidden = !live;
-  $('snap-wear').hidden = live || !LOOKS.has(plainLook(print.look ?? ''));
+  // Puts that person back on the stand. Prints from before this was kept have no person, so they can't.
+  $('snap-wear').hidden = live || !print.person?.front || !LOOKS.has(plainLook(print.look ?? ''));
+  $('snap-redo').hidden = !live || !window.orbitCanRedo?.(print.look);
   const roll = $('snap-roll');
   roll.hidden = prints.length < 2;
   roll.replaceChildren(...prints.map((entry, index) => {
@@ -855,16 +857,30 @@ $('snap-share').addEventListener('click', () => {
   if (print) navigator.share({ files: [fileOf(print, openedSide)], title: APP_NAME }).catch(() => {});
 });
 
-/** Puts an older photo's look back on the mannequin. It was dressed before, so it is saved and costs nothing. */
+/** Puts that photo's person back on the stand, in its look. Muse already made them, so it costs nothing. */
 $('snap-wear').addEventListener('click', () => {
   const print = prints.find((entry) => entry.id === opened);
-  if (!print) return;
+  if (!print?.person?.front) return;
   $('snap-view').close();
-  remember();
-  leaveWearer();
+  const person = { look: print.look, front: print.person.front, back: print.person.back ?? undefined };
+  if (!person.back) person.failed = true;
+  printIds.set(person, print.id);
   wearLook(print.look);
   renderLook();
-  dress();
+  dispatchEvent(new CustomEvent('orbit:wear', { detail: person }));
+});
+
+/** Asks Muse for this try-on again, for when it came out wrong. The new photo takes the old one's place. */
+$('snap-redo').addEventListener('click', () => {
+  const print = prints.find((entry) => entry.id === opened);
+  if (!print || print.id !== liveId) return;
+  $('snap-view').close();
+  replacing = print.id;
+  dispatchEvent(new CustomEvent('orbit:redo', { detail: { look: print.look } }));
+});
+// A Make it again that fails keeps the photo it was meant to replace.
+addEventListener('orbit:wait', (e) => {
+  if (!e.detail) replacing = null;
 });
 
 /** A deleted photo leaves at once, and is only gone for good when its Undo runs out. */
