@@ -5,7 +5,7 @@ const BASE = 'https://api.meta.ai/v1';
 const MODEL = 'muse-image-1.0';
 const LOG = '.muse-usage.jsonl';
 
-function apiKey() {
+export function apiKey() {
   if (process.env.META_API_KEY) return process.env.META_API_KEY;
   const line = readFileSync('.env.local', 'utf8').split('\n').find((row) => row.startsWith('META_API_KEY='));
   return line?.slice('META_API_KEY='.length).trim();
