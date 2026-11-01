@@ -785,8 +785,8 @@ header p {
   height: 100%;
 }
 
-/* The photo area only, in the print's own proportions. */
-.snap-print::after {
+/* The photo area only, in the print's own proportions. Only a print that just came out develops. */
+.snap-print[data-fresh]::after {
   content: '';
   position: absolute;
   inset: 4.1% 5% 17.1%;
@@ -805,13 +805,27 @@ header p {
   animation: snap-label 300ms ease 1500ms both;
 }
 
-.snap:active .snap-print {
+.snap:active .snap-pile {
   scale: 0.97;
 }
 
+.snap-pile {
+  transition: scale 160ms var(--ease-out);
+}
+
 @media (hover: hover) and (pointer: fine) {
-  .snap:hover .snap-print {
+  .snap:hover .snap-print[data-at='0'] {
     rotate: -1deg;
+  }
+
+  .snap:hover .snap-print[data-at='1'] {
+    rotate: 8deg;
+    translate: 14% -4%;
+  }
+
+  .snap:hover .snap-print[data-at='2'] {
+    rotate: -13deg;
+    translate: -13% -1%;
   }
 }
 
