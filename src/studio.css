@@ -891,6 +891,29 @@ dialog.snap-view {
   display: none;
 }
 
+.snap-card {
+  position: relative;
+  transform-style: preserve-3d;
+}
+
+#snap-full,
+#snap-full-back {
+  backface-visibility: hidden;
+}
+
+#snap-full-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 24px 60px rgb(18 12 8 / 0.55);
+  transform: rotateY(180deg);
+}
+
+#snap-full-back[hidden] {
+  display: none;
+}
+
 #snap-full {
   display: block;
   width: auto;
