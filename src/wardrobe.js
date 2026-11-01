@@ -18,7 +18,7 @@ const PIECES = {
   trousers: [['chinos', 'Sand chinos', 96], ['pants-charcoal', 'Charcoal wool trouser', 136], ['pants-olive', 'Olive cargo pant', 104], ['pants-cream', 'Cream pleated trouser', 124], ['pants-navy', 'Navy pleated trouser', 128], ['pants-rust', 'Rust corduroy trouser', 118]],
 };
 
-export const WARDROBE = KINDS.flatMap((kind) => PIECES[kind.id].map(([id, name, price, file]) => ({
+const BASE = KINDS.flatMap((kind) => PIECES[kind.id].map(([id, name, price, file]) => ({
   id,
   name,
   price,
@@ -27,15 +27,17 @@ export const WARDROBE = KINDS.flatMap((kind) => PIECES[kind.id].map(([id, name, 
   slot: kind.slot,
   length: kind.length,
   whole: kind.whole,
+  image: `studio/set/item-${file ?? id}.webp`,
+  back: `studio/set/item-${file ?? id}-back.webp`,
 })));
+
+// What the catalogue holds now: the base set, which never changes, and in front of each kind the garments a store added.
+// The array and the map below are filled in place, so every module that imported them sees a store's additions.
+export const WARDROBE = [];
 
 // Three layers: one thing on the torso, a jacket over it, and something on the legs. A jacket is worn open, so with
 // nothing chosen under it, it goes over the plain tee.
-export const UNDER = WARDROBE[0];
-const pick = (slot) => WARDROBE.filter((item) => item.slot === slot);
-const tops = pick('top');
-const bottoms = pick('bottom');
-const jackets = pick('outer');
+export const UNDER = BASE[0];
 
 export function lookId(top, bottom, outer) {
   const base = top || bottom ? `${top?.id ?? 'none'}-${bottom?.id ?? 'none'}` : 'bare';
