@@ -778,29 +778,26 @@ function renderPile(fresh) {
   $('snap').hidden = !count;
 }
 
-let turning = null; // The print turning over in the viewer, so a quick second tap waits for it.
+/* The print in the viewer is a card with the front on one face and the back on the other, so Front and Back turn it over
+   in one unbroken movement. */
+const FLIP_MS = 620;
+const FLIP_EASE = 'cubic-bezier(0.65, 0, 0.35, 1)';
+const cardAt = (degrees) => `perspective(1800px) rotateY(${degrees}deg)`;
 
-/** Turns the print over like a card for Front and Back, and lets a different photo fade in. */
-async function swapPrint(url, how) {
-  const image = $('snap-full');
-  if (!motion || !how || !image.src) {
-    image.src = url;
-    return;
-  }
-  await turning;
-  const out = how === 'turn'
-    ? [{ transform: 'perspective(1400px) rotateY(0)' }, { transform: 'perspective(1400px) rotateY(90deg)' }]
-    : [{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(0.985)' }];
-  const back = how === 'turn'
-    ? [{ transform: 'perspective(1400px) rotateY(-90deg)' }, { transform: 'perspective(1400px) rotateY(0)' }]
-    : [{ opacity: 0, transform: 'scale(0.985)' }, { opacity: 1, transform: 'scale(1)' }];
-  turning = (async () => {
-    await image.animate(out, { duration: how === 'turn' ? 170 : 120, easing: 'cubic-bezier(0.55, 0, 1, 0.45)' }).finished;
-    image.src = url;
-    await image.decode().catch(() => {});
-    await image.animate(back, { duration: how === 'turn' ? 260 : 220, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' }).finished;
-  })();
-  await turning;
+/** Where the card is now, mid-turn included: rotateY puts -sin in the third column and cos in the first. */
+function cardAngle() {
+  const matrix = new DOMMatrix(getComputedStyle($('snap-card')).transform);
+  return (Math.atan2(-matrix.m13, matrix.m11) * 180) / Math.PI;
+}
+
+function turnCard(side, animate) {
+  const card = $('snap-card');
+  const to = side === 'back' ? 180 : 0;
+  const from = animate ? cardAngle() : to;
+  card.getAnimations().forEach((animation) => animation.cancel());
+  card.style.transform = cardAt(to);
+  if (!animate || !motion || Math.abs(to - from) < 1) return;
+  card.animate([{ transform: cardAt(from) }, { transform: cardAt(to) }], { duration: (FLIP_MS * Math.abs(to - from)) / 180, easing: FLIP_EASE });
 }
 
 function showPrint(id, side = 'front') {
@@ -815,7 +812,14 @@ function showPrint(id, side = 'front') {
   const url = urlOf(print, openedSide);
   const file = fileOf(print, openedSide);
   const open = $('snap-view').open;
-  swapPrint(url, !open ? null : before.id !== opened ? 'fade' : before.side !== openedSide ? 'turn' : null);
+  if (before.id !== opened || !open) {
+    // Another photo: both faces change, it opens on the side asked for, and fades in when the viewer is already up.
+    $('snap-full').src = urlOf(print);
+    $('snap-full-back').hidden = !print.back;
+    if (print.back) $('snap-full-back').src = urlOf(print, 'back');
+    turnCard(openedSide, false);
+    if (open && motion) $('snap-card').animate([{ opacity: 0, scale: 0.985 }, { opacity: 1, scale: 1 }], { duration: 220, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+  } else if (before.side !== openedSide) turnCard(openedSide, true);
   $('snap-save').href = url;
   $('snap-save').download = file.name;
   $('snap-share').hidden = !navigator.canShare?.({ files: [file] });
