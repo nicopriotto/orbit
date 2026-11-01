@@ -675,31 +675,40 @@ function syncDock() {
 
 let printing = 0; // Only the print of what is on the stand now gets shown.
 let printed = {}; // What the live print was made from.
-let prints = []; // The pile, newest first: { id, blob, caption, place, at }.
+let prints = []; // The pile, newest first: { id, front, back, caption, place, look, at }. The pile shows the front.
 const printIds = new WeakMap(); // Which print belongs to each try-on, so a new room redoes it instead of adding one.
 const printUrls = new Map();
 let liveId = null; // The print of whoever is on the stand now.
-let opened = null; // The print open in the viewer.
+let opened = null; // The print open in the viewer, and the side it shows.
+let openedSide = 'front';
+let binned = null; // The last print deleted, until its Undo runs out: { print, index, timer }.
+const UNDO_MS = 5000;
 
-const urlOf = (print) => {
-  if (!printUrls.has(print.id)) printUrls.set(print.id, URL.createObjectURL(print.blob));
-  return printUrls.get(print.id);
+const blobOf = (print, side = 'front') => (side === 'back' ? print.back : print.front ?? print.blob);
+const urlOf = (print, side = 'front') => {
+  const key = `${print.id}:${side}`;
+  if (!printUrls.has(key)) printUrls.set(key, URL.createObjectURL(blobOf(print, side)));
+  return printUrls.get(key);
 };
 const forget = (id) => {
-  URL.revokeObjectURL(printUrls.get(id));
-  printUrls.delete(id);
+  for (const side of ['front', 'back']) {
+    URL.revokeObjectURL(printUrls.get(`${id}:${side}`));
+    printUrls.delete(`${id}:${side}`);
+  }
 };
-const fileOf = (print) => {
+const fileOf = (print, side) => {
   const day = new Date(print.at).toISOString().slice(0, 10);
-  return new File([print.blob], `${APP_NAME.toLowerCase()}-${day}-${print.id.slice(-4)}.jpg`, { type: 'image/jpeg' });
+  const name = `${APP_NAME.toLowerCase()}-${day}-${print.id.slice(-4)}${side === 'back' ? '-back' : ''}.jpg`;
+  return new File([blobOf(print, side)], name, { type: 'image/jpeg' });
 };
+const facingBack = () => wrap(tween?.to ?? angle) === 180;
 
-/** Develops once per side of the person and room, and stays on the pile after they leave. */
+/** Develops the front, and the back once it arrives, for each try-on and room. It stays on the pile after they leave. */
 async function syncPrint() {
-  const side = wrap(tween?.to ?? angle) === 180 ? wearer?.back : wearer?.front;
-  if (wearer === printed.person && side === printed.side && room === printed.room) return;
+  const back = wearer?.back;
+  if (wearer === printed.person && back === printed.back && room === printed.room) return;
   const ticket = ++printing;
-  printed = { person: wearer, side, room };
+  printed = { person: wearer, back, room };
   if (!wearer) {
     liveId = null;
     renderPile();
