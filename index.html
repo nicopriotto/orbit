@@ -132,8 +132,8 @@
     </button>
 
     <button type="button" class="snap" id="snap" aria-label="Open your photo" hidden>
-      <span class="snap-print"><img id="snap-image" alt="" draggable="false" /></span>
-      <span class="snap-label">Keep this photo</span>
+      <span class="snap-pile" id="snap-pile"></span>
+      <span class="snap-label" id="snap-label">Keep this photo</span>
     </button>
 
     <aside class="wardrobe" id="wardrobe" aria-labelledby="wardrobe-title">
@@ -156,10 +156,12 @@
 
     <dialog class="snap-view" id="snap-view" aria-label="Your photo">
       <img id="snap-full" alt="You wearing the look, as an instant photo" draggable="false" />
+      <nav class="snap-roll" id="snap-roll" aria-label="Your photos" hidden></nav>
       <div class="snap-bar">
         <nav class="snap-places" id="snap-places" aria-label="Places"></nav>
         <div class="snap-actions">
           <button type="button" class="pill" id="snap-close">Close</button>
+          <button type="button" class="pill" id="snap-delete">Delete</button>
           <button type="button" class="pill" id="snap-share" hidden>Share</button>
           <a class="pill primary" id="snap-save">Download</a>
         </div>
