@@ -158,15 +158,25 @@
       <img id="snap-full" alt="You wearing the look, as an instant photo" draggable="false" />
       <nav class="snap-roll" id="snap-roll" aria-label="Your photos" hidden></nav>
       <div class="snap-bar">
+        <div class="snap-sides" id="snap-sides" role="group" aria-label="Side" hidden>
+          <button type="button" data-side="front" aria-pressed="true">Front</button>
+          <button type="button" data-side="back" aria-pressed="false">Back</button>
+        </div>
         <nav class="snap-places" id="snap-places" aria-label="Places"></nav>
         <div class="snap-actions">
           <button type="button" class="pill" id="snap-close">Close</button>
           <button type="button" class="pill" id="snap-delete">Delete</button>
+          <button type="button" class="pill" id="snap-wear" hidden>Wear this again</button>
           <button type="button" class="pill" id="snap-share" hidden>Share</button>
           <a class="pill primary" id="snap-save">Download</a>
         </div>
       </div>
     </dialog>
+
+    <div class="toast" id="toast" popover="manual" role="status">
+      <span id="toast-text"></span>
+      <button type="button" id="toast-undo">Undo</button>
+    </div>
 
     <!-- A stand-in for the brand's own store, with the look already in its cart. -->
     <dialog class="store" id="store" aria-labelledby="store-title">
