@@ -2,6 +2,8 @@ const MAX_SIDE = 1400;
 const CANVAS = { width: 1120, height: 2130 };
 const FIGURE = { top: 70, bottom: 2080 };
 const EDGE = 2; // Pixels trimmed from the outline.
+// On a person the loader says which model is at work: Muse dresses them, SAM 3.1 then cuts them out.
+const TRY_ON_STEPS = ['Muse reads your photo', 'Muse dresses you', 'Matching every seam', 'SAM 3.1 cuts you out'];
 const SECONDS = 20; // Up to the front, which is shown at once. The back follows from it, another image later.
 
 const dialog = document.getElementById('upload');
@@ -97,8 +99,37 @@ function spread(values, width, height, radius, pick) {
   return result;
 }
 
+/**
+ * SAM 3.1's mask of the person: well inside it, whatever is not plain backdrop is kept, even something green they
+ * wear; well outside it nothing is, so no patch of backdrop survives. Along the edge the chroma key decides.
+ */
+const MASK_MARGIN = 7; // Pixels of the full image; SAM's person mask comes at about half its resolution.
+
+async function keepPerson(alpha, matte, mask, width, height) {
+  const image = await loadImage(`data:image/png;base64,${mask}`).catch(() => null);
+  if (!image) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  context.drawImage(image, 0, 0, width, height);
+  const { data } = context.getImageData(0, 0, width, height);
+  const sure = new Uint8Array(width * height);
+  for (let p = 0; p < sure.length; p++) sure[p] = data[p * 4];
+  // SAM's mask is coarser than the photo, so it only rules away from its own edge: shrunk, it says what is surely the
+  // person; grown, what is surely backdrop. The band between is left to the chroma key's finer edge.
+  const inside = spread(sure, width, height, MASK_MARGIN, Math.min);
+  const outside = spread(sure, width, height, MASK_MARGIN, Math.max);
+  for (let p = 0; p < alpha.length; p++) {
+    if (outside[p] < 10) alpha[p] = 0;
+    // Surely the person, and not plain backdrop: a gap between the fingers is backdrop through and through and stays
+    // open, while something green they wear differs from the backdrop enough to be kept.
+    else if (inside[p] > 245 && matte[p] > 40) alpha[p] = 255;
+  }
+}
+
 /** Cuts the figure out and places it on the mannequin's canvas, so the person stands exactly where it did. */
-async function cutOut(base64, green) {
+async function cutOut(base64, green, mask) {
   const image = await loadImage(`data:image/webp;base64,${base64}`);
   const source = document.createElement('canvas');
   source.width = image.naturalWidth;
@@ -115,6 +146,7 @@ async function cutOut(base64, green) {
   }
   // Pixels on the outline are part background, so the outline is pulled in and whatever green is left nearby is removed.
   const alpha = spread(matte, width, height, EDGE, Math.min);
+  if (mask) await keepPerson(alpha, matte, mask, width, height);
   const near = spread(alpha.map((value) => (value < 250 ? 255 : 0)), width, height, EDGE * 2, Math.max);
   let top = height;
   let bottom = 0;
@@ -228,7 +260,7 @@ async function dress() {
   const look = window.orbitLook();
   dialog.close();
   changePhoto.hidden = false;
-  window.dispatchEvent(new CustomEvent('orbit:wait', { detail: { seconds: SECONDS } }));
+  window.dispatchEvent(new CustomEvent('orbit:wait', { detail: { seconds: SECONDS, steps: TRY_ON_STEPS } }));
   const images = { look };
   try {
     const response = await fetch('api/try-on', {
@@ -240,10 +272,10 @@ async function dress() {
     const green = await clothGreen(look);
     for await (const part of parts(response)) {
       if (part.front) {
-        images.front = await cutOut(part.front, green);
+        images.front = await cutOut(part.front, green, part.frontMask);
         made.set(look, images);
         window.dispatchEvent(new CustomEvent('orbit:wear', { detail: images }));
-      } else images.back = await cutOut(part.back, green);
+      } else images.back = await cutOut(part.back, green, part.backMask);
     }
     if (!images.front) throw new Error();
   } catch (error) {
