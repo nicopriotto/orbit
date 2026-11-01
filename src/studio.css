@@ -873,6 +873,10 @@ dialog.snap-view {
   box-shadow: 0 24px 60px rgb(18 12 8 / 0.55);
 }
 
+.snap-view:has(.snap-roll:not([hidden])) #snap-full {
+  height: min(calc(100dvh - 190px), calc((100vw - 32px) * 1.222));
+}
+
 .snap-bar {
   display: flex;
   flex-wrap: wrap;
@@ -900,6 +904,64 @@ dialog.snap-view {
 .snap-actions {
   display: flex;
   gap: 8px;
+}
+
+/* Every print in the pile, small, to pick which one is open. */
+.snap-roll {
+  display: flex;
+  justify-content: safe center;
+  gap: 10px;
+  max-width: min(100%, 640px);
+  margin: 16px auto 0;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.snap-roll[hidden] {
+  display: none;
+}
+
+.roll-print {
+  flex: none;
+  width: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 160ms ease, transform 160ms var(--ease-out);
+}
+
+.roll-print img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1080 / 1320;
+  box-shadow: 0 4px 10px rgb(18 12 8 / 0.4);
+}
+
+.roll-print[aria-pressed='true'] {
+  opacity: 1;
+  transform: translateY(-3px);
+}
+
+.roll-print:active {
+  transform: scale(0.95);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .roll-print:hover {
+    opacity: 0.9;
+  }
+}
+
+.roll-print:focus-visible {
+  outline: 2px solid var(--paper);
+  outline-offset: 3px;
+}
+
+.snap-places[hidden] {
+  display: none;
 }
 
 .snap-view a {
