@@ -795,16 +795,6 @@ header p {
   pointer-events: none;
 }
 
-.snap-label {
-  padding: 7px 14px 8px;
-  border-radius: 999px;
-  background: var(--panel);
-  font: 500 14px/1 var(--sans);
-  box-shadow: inset 0 0 0 1px var(--line);
-  backdrop-filter: blur(6px);
-  animation: snap-label 300ms ease 1500ms both;
-}
-
 .snap:active .snap-pile {
   scale: 0.97;
 }
