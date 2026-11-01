@@ -9,6 +9,7 @@
     "preview": "vite preview --port 5192"
   },
   "dependencies": {
+    "@meta-sam/parser": "0.1.0",
     "sharp": "^0.35.5",
     "vite": "8.3.5"
   }
