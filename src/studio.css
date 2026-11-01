@@ -1199,7 +1199,7 @@ dialog.store {
   z-index: 10;
   left: 28px;
   bottom: 14px;
-  width: min(calc(50vw - 340px), 380px);
+  width: min(calc(50vw - 260px), 400px);
   min-width: 220px;
   border-radius: 12px;
   background: var(--panel);
@@ -1245,7 +1245,7 @@ dialog.store {
   overflow: hidden;
   font: 500 17px/1.25 var(--serif);
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
 }
 
 .tag-total {
@@ -1967,8 +1967,13 @@ dialog .error {
   opacity: 1;
 }
 
+/* Without hover it is always there, so it sits in the corner by the hook, clear of the garment. */
 @media (hover: none) {
   .turn-over {
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
     opacity: 1;
   }
 }
@@ -2017,10 +2022,10 @@ dialog .error {
   }
 
   .snap {
-    --width: 92px;
+    --width: clamp(92px, 17vw, 150px);
     top: auto;
     right: 18px;
-    bottom: 118px;
+    bottom: calc(118px + var(--figure) * 0.2);
     left: auto;
     transform: none;
   }
@@ -2204,7 +2209,8 @@ dialog .error {
   .snap-print,
   .snap-print::after,
   .snap-label,
-  .roll-print {
+  .roll-print,
+  .toast {
     animation: none;
     transition: none;
   }
