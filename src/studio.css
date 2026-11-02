@@ -1806,6 +1806,152 @@ dialog .error {
   transition: transform 260ms var(--ease-out), width 260ms var(--ease-out);
 }
 
+/* The stylist: one quiet line under the title. Muse Spark answers underneath in the same voice as the catalogue. */
+.stylist {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  border-bottom: 1px solid rgb(44 33 24 / 0.16);
+  transition: border-color 200ms ease;
+}
+
+.stylist:focus-within {
+  border-color: var(--brass);
+}
+
+/* While Spark reads the wardrobe, a thread of brass runs along the line. */
+.stylist::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 30%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--brass), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.stylist[data-thinking]::after {
+  opacity: 1;
+  animation: stylist-thread 1300ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes stylist-thread {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(340%); }
+}
+
+.stylist-spark {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  fill: var(--brass);
+}
+
+.stylist[data-thinking] .stylist-spark {
+  animation: stylist-breathe 1300ms ease-in-out infinite;
+}
+
+@keyframes stylist-breathe {
+  50% { opacity: 0.35; transform: scale(0.8); }
+}
+
+.stylist input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #2c2118;
+  font: italic 500 18px/1 var(--serif);
+  outline: none;
+}
+
+.stylist input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.85;
+}
+
+.stylist input:disabled {
+  color: var(--ink-soft);
+}
+
+.stylist-go {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #2c2118;
+  color: var(--paper);
+  cursor: pointer;
+  transition: opacity 180ms ease, transform 180ms var(--ease-out);
+}
+
+.stylist-go:disabled {
+  opacity: 0;
+  transform: scale(0.6);
+  pointer-events: none;
+}
+
+.stylist-go:active {
+  transform: scale(0.92);
+}
+
+.stylist-go:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+}
+
+.stylist-go svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stylist-note {
+  margin: 10px 0 2px;
+  color: #2c2118;
+  font: 400 14px/1.45 var(--sans);
+  text-wrap: pretty;
+}
+
+.stylist-note b {
+  margin-right: 4px;
+  color: var(--brass);
+  font: 600 11px/1 var(--sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.stylist-note[data-waiting] span,
+.stylist-note[data-failed] span {
+  color: var(--ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stylist[data-thinking]::after {
+    animation: none;
+    width: 100%;
+    opacity: 0.6;
+  }
+
+  .stylist[data-thinking] .stylist-spark {
+    animation: none;
+  }
+}
+
 .wardrobe h2 {
   flex: 1;
   margin: 0;
