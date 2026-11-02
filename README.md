@@ -35,9 +35,11 @@ Three Meta models run in the product, all through the Meta Model API with one ke
 
 `server/catalog.mjs` streams each step as it finishes and keeps the brand's garments in `cache/catalog`. The 36 garments of the base catalogue cannot be removed; a brand's own garments can be taken out, with a moment to undo, and are only marked as removed, never deleted. Garment reads are capped per day and per visitor (`CATALOG_DAILY_LIMIT`, `CATALOG_VISITOR_LIMIT`).
 
-### The stylist
+### Margot, the stylist
 
-A single line under the wardrobe's title takes a few words, such as "dinner on a rooftop". **Muse Spark** answers with one outfit from the catalogue, the room to see it in and a sentence on why, and the mannequin changes into it. Spark is given the whole wardrobe in words: each brand garment as Spark read it when it was added, and the 36 base garments as Spark read them once from their pictures (`scripts/catalogue-base.mjs`, kept in `src/catalogue-notes.json`). Its answer is held by a strict JSON schema to the catalogue's ids, so it can only pick what exists, and it is told which outfits are already photographed so it leans on those, which show at once and cost nothing. `server/stylist.mjs`; capped by `STYLIST_DAILY_LIMIT` and `STYLIST_VISITOR_LIMIT`. Each answer costs well under a cent.
+Margot lives at the head of the wardrobe: an illustrated portrait (made once with Muse Image, `public/studio/stylist/margot.webp`), a short conversation and a line to write on. **Muse Spark** speaks for her. She can be asked for a look ("a wedding in the country, by day"), and she dresses the mannequin, picks the room and says why; or she can be asked what she thinks of what the shopper put together, and she judges whether the pieces go (layering, colour, formality, season), names the piece that is wrong and puts the fix on. She answers in the shopper's language and follows the thread of the conversation.
+
+Spark is given the whole wardrobe in words: each brand garment as Spark read it when it was added, and the 36 base garments as Spark read them once from their pictures (`scripts/catalogue-base.mjs`, kept in `src/catalogue-notes.json`). Its answer is held by a strict JSON schema to the catalogue's ids, so it can only pick what exists, and it is told which outfits are already photographed so it leans on those, which show at once and cost nothing. `server/stylist.mjs`; capped by `STYLIST_DAILY_LIMIT` and `STYLIST_VISITOR_LIMIT`. Each answer costs well under a cent. The conversation stays in the page.
 
 ### Muse Image
 
