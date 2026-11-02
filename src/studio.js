@@ -1226,6 +1226,24 @@ renderLook();
 showWardrobe(false);
 for (const look of [FIRST_LOOK, `${MAN}bare`]) VIEWS.forEach((view) => load(picture(look, view)));
 requestAnimationFrame(frame);
+enter();
+
+/** Lifts the curtain once the room, the stand and the figure are ready, or after a few seconds whatever happens. */
+async function enter() {
+  const pause = (ms) => new Promise((done) => setTimeout(done, ms));
+  await new Promise(requestAnimationFrame);
+  const images = [...document.querySelectorAll('.plate, .stand, .frame')].filter((image) => image.getAttribute('src'));
+  const ready = Promise.all([document.fonts.ready, ...images.map((image) => image.decode().catch(() => {}))]);
+  await Promise.race([Promise.all([ready, pause(motion ? 1200 : 0)]), pause(4000)]);
+  document.body.removeAttribute('data-intro');
+  setTimeout(() => $('intro').remove(), 1000);
+  if (!motion) return;
+  const ease = 'cubic-bezier(0.23, 1, 0.32, 1)';
+  $('figure').animate([{ opacity: 0, translate: '0 4%', filter: 'blur(10px)' }, { opacity: 1, translate: '0 0', filter: 'blur(0)' }], { duration: 1200, delay: 380, easing: ease, fill: 'backwards' });
+  [...document.querySelectorAll('header, .places, .wardrobe-rail, .tag, .dock, .steps, .snap')].forEach((element, index) => {
+    element.animate([{ opacity: 0, translate: '0 10px' }, { opacity: 1, translate: '0 0' }], { duration: 700, delay: 900 + index * 90, easing: ease, fill: 'backwards' });
+  });
+}
 
 if (import.meta.env.DEV) {
   window.studio = {
