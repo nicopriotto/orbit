@@ -189,7 +189,7 @@ function make(id, visitor) {
   return running.get(id);
 }
 
-function saved() {
+export function saved() {
   const looks = { bare: VIEWS, [`${MAN}bare`]: VIEWS };
   for (const folder of [BUILT, FINISHED]) {
     for (const name of existsSync(folder) ? readdirSync(folder) : []) {
