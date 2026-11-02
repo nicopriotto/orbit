@@ -17,6 +17,7 @@ const changePhoto = document.getElementById('change-photo');
 const errorLine = document.getElementById('upload-error');
 const made = new Map(); // Each look on this photo is paid for once.
 let photo = null;
+let model = null; // One of the two people Muse made, in place of a photo. Their looks are kept on the server for everyone.
 
 const smooth = (low, high, x) => {
   const t = Math.min(Math.max((x - low) / (high - low), 0), 1);
@@ -196,6 +197,8 @@ async function* parts(response) {
   }
 }
 
+const ready = () => Boolean(model || (photo && consent.checked));
+
 function refresh() {
   send.disabled = !(photo && consent.checked);
 }
@@ -205,6 +208,7 @@ async function takePhoto(selected) {
   errorLine.hidden = !(errorLine.textContent = file.accept.includes(selected.type) ? '' : 'Use a JPEG, PNG or WebP photo.');
   if (!errorLine.hidden) return;
   photo = await shrink(selected);
+  model = null;
   made.clear();
   preview.src = photo;
   document.getElementById('change-photo-image').src = photo;
@@ -237,13 +241,28 @@ function wearOrDress() {
 }
 
 document.getElementById('try').addEventListener('click', () => {
-  if (photo && consent.checked) wearOrDress();
+  if (ready()) wearOrDress();
   else dialog.showModal();
 });
+
+// A model goes straight on: nothing to upload, nothing to agree to.
+for (const button of document.querySelectorAll('.model')) {
+  button.addEventListener('click', () => {
+    if (model !== button.dataset.model) made.clear();
+    model = button.dataset.model;
+    photo = null;
+    preview.hidden = true;
+    hint.hidden = false;
+    consent.checked = false;
+    refresh();
+    document.getElementById('change-photo-image').src = `studio/models/${model}-face.webp`;
+    wearOrDress();
+  });
+}
 changePhoto.addEventListener('click', () => dialog.showModal());
 
 // Make it again: only for the photo given in this visit, and only for the look on the stand now.
-window.orbitCanRedo = (look) => Boolean(photo && consent.checked && made.has(look) && look === window.orbitLook());
+window.orbitCanRedo = (look) => Boolean(!model && photo && consent.checked && made.has(look) && look === window.orbitLook());
 window.addEventListener('orbit:redo', (event) => {
   if (!window.orbitCanRedo(event.detail.look)) return;
   made.delete(event.detail.look);
@@ -266,7 +285,7 @@ async function dress() {
     const response = await fetch('api/try-on', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ photo, look }),
+      body: JSON.stringify(model ? { model, look } : { photo, look }),
     });
     if (!response.ok) throw new Error((await response.json()).error);
     const green = await clothGreen(look);
