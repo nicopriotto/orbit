@@ -128,25 +128,32 @@ export async function stylist(request, response) {
   const visitor = request.socket.remoteAddress ?? 'unknown';
   let reserved = false;
   try {
-    const body = JSON.parse(await readBody(request, 4096));
-    const words = String(body.ask ?? '').replace(/\s+/g, ' ').trim().slice(0, 200);
+    const body = JSON.parse(await readBody(request, 16 * 1024));
+    const turns = (Array.isArray(body.messages) ? body.messages : [])
+      .slice(-TURNS)
+      .map((turn) => ({ role: turn?.role === 'stylist' ? 'stylist' : 'shopper', text: String(turn?.text ?? '').replace(/\s+/g, ' ').trim().slice(0, 300) }))
+      .filter((turn) => turn.text);
+    const last = turns.at(-1);
+    if (!last || last.role !== 'shopper' || last.text.length < 2) return reply(400, { error: 'Tell me a little more.' });
     const figure = body.figure === MAN ? MAN : '';
-    if (words.length < 2) return reply(400, { error: 'Tell the stylist a little more.' });
     const blocked = asks.reserve(visitor);
     if (blocked) return reply(429, { error: blocked });
     reserved = true;
     const current = LOOKS.get(plainLook(String(body.look ?? '')));
-    const answer = MOCK ? await mock(words, figure) : await ask(prompt(words, figure, current && pieces(current)), 'outfit', schema(figure), 'stylist');
-    let top = find(answer.top);
-    let bottom = find(answer.bottom);
-    const outer = find(answer.outer);
-    if (top?.whole) bottom = null;
-    if (outer && !top) top = UNDER;
-    if (!top || (!top.whole && !bottom)) return reply(422, { error: 'The stylist could not put a whole look together. Try saying it another way.' });
-    return reply(200, { look: figure + lookId(top, bottom, outer), place: answer.place, note: answer.note.trim(), mock: MOCK });
+    const answer = MOCK ? await mock(last.text, figure, current) : await ask(prompt(figure, current, turns), 'stylist', schema(figure), 'stylist');
+    const out = { reply: answer.reply.trim(), place: answer.place === KEEP ? null : answer.place, mock: MOCK };
+    if (answer.action === 'dress') {
+      let top = find(answer.top);
+      let bottom = find(answer.bottom);
+      const outer = find(answer.outer);
+      if (top?.whole) bottom = null;
+      if (outer && !top) top = UNDER;
+      if (top && (top.whole || bottom)) out.look = figure + lookId(top, bottom, outer);
+    }
+    return reply(200, out);
   } catch (error) {
     console.error('stylist failed', error.status, error.message);
     if (reserved) asks.release(visitor);
-    return reply(error.status === 413 ? 413 : 502, { error: 'The stylist is busy. Try again in a moment.' });
+    return reply(error.status === 413 ? 413 : 502, { error: 'I lost my train of thought. Ask me again in a moment.' });
   }
 }
