@@ -3554,3 +3554,22 @@ body:not([data-intro]) .intro {
     transition: none;
   }
 }
+
+/* The figure can be taken by the hand and turned. Only its middle answers, so the stand's arrows stay free. */
+.grab {
+  position: absolute;
+  z-index: 3;
+  inset: 4% 22% 12%;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+[data-dragging],
+[data-dragging] .grab {
+  cursor: grabbing;
+}
+
+[data-working] .grab {
+  pointer-events: none;
+}
