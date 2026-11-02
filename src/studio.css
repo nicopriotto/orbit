@@ -2976,9 +2976,21 @@ dialog.atelier {
   .snap-print,
   .snap-print::after,
   .roll-print,
-  .toast {
+  .toast,
+  .shot-photo,
+  .shot-cut,
+  .shot-line path,
+  .shot-scan::before,
+  .shot-frame::after,
+  .flow-dot::after,
+  .flow li::before,
+  .spot[data-new] .piece {
     animation: none;
     transition: none;
+  }
+
+  .shot-line path {
+    stroke-dashoffset: 0;
   }
 
   dialog,
