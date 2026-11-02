@@ -3877,3 +3877,12 @@ body:not([data-intro]) .intro {
     gap: 8px 16px;
   }
 }
+
+.flash {
+  position: fixed;
+  z-index: 50;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 40%, #fffaf0, #fff3dc 60%, #f4e3c3);
+  opacity: 0;
+  pointer-events: none;
+}
