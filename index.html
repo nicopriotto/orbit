@@ -152,6 +152,14 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
       </div>
+      <form class="stylist" id="stylist" autocomplete="off">
+        <svg class="stylist-spark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.6 4.4 2.6 6.4 7 7-4.4.6-6.4 2.6-7 7-.6-4.4-2.6-6.4-7-7 4.4-.6 6.4-2.6 7-7z" /></svg>
+        <input id="stylist-ask" name="ask" maxlength="200" enterkeyhint="send" aria-label="Ask the stylist" placeholder="Ask the stylist: dinner in the garden, a first day at work…" />
+        <button type="submit" class="stylist-go" id="stylist-go" aria-label="Ask" disabled>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </button>
+      </form>
+      <p class="stylist-note" id="stylist-note" aria-live="polite" hidden><b>Muse Spark</b> <span id="stylist-text"></span></p>
       <nav class="jump" id="jump" aria-label="Kinds of garment"><span class="jump-mark" id="jump-mark"></span></nav>
       </div>
       <div class="sections" id="sections"></div>
