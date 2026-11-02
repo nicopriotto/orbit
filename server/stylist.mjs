@@ -86,28 +86,33 @@ function schema(figure) {
   return {
     type: 'object',
     additionalProperties: false,
-    required: ['top', 'bottom', 'outer', 'place', 'note'],
+    required: ['reply', 'action', 'top', 'bottom', 'outer', 'place'],
     properties: {
+      reply: { type: 'string' },
+      action: { type: 'string', enum: ['dress', 'none'] },
       top: { type: 'string', enum: ids('top') },
       bottom: { type: 'string', enum: ids('bottom') },
       outer: { type: 'string', enum: ids('outer') },
-      place: { type: 'string', enum: Object.keys(PLACES) },
-      note: { type: 'string' },
+      place: { type: 'string', enum: [KEEP, ...Object.keys(PLACES)] },
     },
   };
 }
 
-/** Without the API: a photographed outfit, chosen by the words, so the page can be tried without spending. */
-async function mock(words, figure) {
+/** Without the API: a photographed outfit chosen by the words, or a fixed opinion, so the page can be tried for free. */
+async function mock(words, figure, current) {
   await new Promise((done) => setTimeout(done, 1400));
+  if (/think|work|go together|look ok|opinion|how does/i.test(words)) {
+    return { reply: current ? 'The jacket earns its place over the tee, and the sand keeps it light. I would leave it exactly as it is.' : 'Put something on first and I will tell you straight.', action: 'none', top: NONE, bottom: NONE, outer: NONE, place: KEEP };
+  }
   const ready = photographed(figure);
   const pick = ready[[...words].reduce((sum, char) => sum + char.charCodeAt(0), 0) % ready.length];
   return {
+    reply: 'Easy pieces that hold together from morning to night. Try this, then tell me what you would change.',
+    action: 'dress',
     top: pick.top?.id ?? NONE,
     bottom: pick.bottom?.id ?? NONE,
     outer: pick.outer?.id ?? NONE,
-    place: /night|dinner|evening|date/i.test(words) ? 'penthouse' : /sun|park|lunch|weekend/i.test(words) ? 'courtyard' : 'boutique',
-    note: 'Easy pieces that hold together from morning to night, with one layer to take off when the room warms up.',
+    place: /night|dinner|evening|date/i.test(words) ? 'penthouse' : /sun|park|lunch|weekend/i.test(words) ? 'courtyard' : KEEP,
   };
 }
 
