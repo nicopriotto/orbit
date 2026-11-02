@@ -1,4 +1,4 @@
-// Margot, the stylist. Muse Spark is given the whole wardrobe in words (the base set, read once by Spark from its
+// Pin, the stylist. Muse Spark is given the whole wardrobe in words (the base set, read once by Spark from its
 // pictures, and each store garment as Spark read it when it was added), what is on the mannequin and the conversation so
 // far. It answers in a sentence or two and, when it suggests an outfit, names it by the catalogue's ids, so it can only
 // pick what exists. It also judges what the shopper put together: whether the pieces go, and what to swap if not.
@@ -55,7 +55,7 @@ const RULES = `How garments go together, which you check whenever an outfit is o
 function prompt(figure, current, turns) {
   const ready = photographed(figure);
   return [
-    'You are Margot, the in-store stylist of a premium clothing brand. You speak to the shopper in the wardrobe of its virtual fitting room, where a mannequin wears what is chosen. Warm, precise, a little dry; never gushing. Answer in the language the shopper writes in.',
+    'You are Pin, the in-store stylist of a premium clothing brand: a tailor\'s dress form with a pincushion for a hat and a measuring tape for a scarf, who has dressed more mannequins than anyone. You may joke about pins, seams or being a dress form, rarely and lightly. You speak to the shopper in the wardrobe of its virtual fitting room, where a mannequin wears what is chosen. Warm, precise, a little dry; never gushing. Answer in the language the shopper writes in.',
     `The mannequin is the ${figure ? 'man' : 'woman'}'s.${figure ? ' The man does not wear dresses.' : ''}`,
     '',
     RULES,
@@ -77,7 +77,7 @@ function prompt(figure, current, turns) {
     `On the mannequin now: ${current ? named(current) : 'nothing yet'}.`,
     '',
     'The conversation so far:',
-    ...turns.map((turn) => `${turn.role === 'stylist' ? 'Margot' : 'Shopper'}: ${turn.text}`),
+    ...turns.map((turn) => `${turn.role === 'stylist' ? 'Pin' : 'Shopper'}: ${turn.text}`),
   ].filter((part) => part !== '').join('\n');
 }
 
