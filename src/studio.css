@@ -4088,6 +4088,11 @@ body:not([data-intro]) .intro {
     overflow: visible;
   }
 
+  /* The button no longer clips, so the picture keeps the circle itself. */
+  .places .place img {
+    border-radius: 50%;
+  }
+
   .places .place::after {
     content: attr(aria-label);
     position: absolute;
