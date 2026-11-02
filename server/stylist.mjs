@@ -1,6 +1,7 @@
-// The stylist. Muse Spark is given the whole wardrobe in words (the base set, read once by Spark from its pictures, and
-// each store garment as Spark read it when it was added) and the shopper's few words, and answers with one outfit from
-// the catalogue, the room to see it in and why. Its answer is held to the catalogue's ids, so it can only pick what exists.
+// Margot, the stylist. Muse Spark is given the whole wardrobe in words (the base set, read once by Spark from its
+// pictures, and each store garment as Spark read it when it was added), what is on the mannequin and the conversation so
+// far. It answers in a sentence or two and, when it suggests an outfit, names it by the catalogue's ids, so it can only
+// pick what exists. It also judges what the shopper put together: whether the pieces go, and what to swap if not.
 import { existsSync, readFileSync } from 'node:fs';
 import { KINDS, LOOKS, MAN, UNDER, WARDROBE, lookId, plainLook } from '../src/wardrobe.js';
 import { MOCK, ask } from './meta.mjs';
@@ -16,11 +17,13 @@ const PLACES = {
   penthouse: 'a city penthouse at blue hour, evening',
 };
 const NONE = 'none';
+const KEEP = 'keep';
+const TURNS = 10; // The conversation Spark sees: enough to follow a thread, short enough to stay cheap.
 
-// A question is a fraction of a cent; the caps only keep a public link from being used as a free chatbot.
-const asks = allowance('.stylist-counts.json', Number(process.env.STYLIST_DAILY_LIMIT ?? 200), Number(process.env.STYLIST_VISITOR_LIMIT ?? 40), {
-  everyone: 'The stylist has seen everyone it can for today.',
-  visitor: 'The stylist is done for today. Pick from the wardrobe.',
+// A message is a fraction of a cent; the caps only keep a public link from being used as a free chatbot.
+const asks = allowance('.stylist-counts.json', Number(process.env.STYLIST_DAILY_LIMIT ?? 300), Number(process.env.STYLIST_VISITOR_LIMIT ?? 60), {
+  everyone: 'I have seen everyone I can for today. The wardrobe is all yours.',
+  visitor: 'That is all from me for today. The wardrobe is all yours.',
 });
 
 const notes = existsSync(NOTES) ? JSON.parse(readFileSync(NOTES, 'utf8')) : {};
