@@ -9,3 +9,4 @@ cache/raw
 cache/catalog
 .catalog-counts.json
 cache/looks/*shop-*
+.stylist-counts.json
