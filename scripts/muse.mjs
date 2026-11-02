@@ -11,6 +11,7 @@ const PRICE = 0.01; // USD per image, from the published price list.
 const LOG = '.muse-usage.jsonl';
 
 function apiKey() {
+  if (process.env.META_API_KEY) return process.env.META_API_KEY;
   const line = readFileSync('.env.local', 'utf8').split('\n').find((row) => row.startsWith('META_API_KEY='));
   const key = line?.slice('META_API_KEY='.length).trim();
   if (!key) throw new Error('META_API_KEY is empty in .env.local');
