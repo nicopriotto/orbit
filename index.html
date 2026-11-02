@@ -312,30 +312,41 @@
 
     <!-- A stand-in for the brand's own store, with the look already in its cart. -->
     <dialog class="store" id="store" aria-labelledby="store-title">
-      <div class="store-bar" aria-hidden="true"><i></i><i></i><i></i><span>yourbrand.example/cart</span></div>
-      <div class="store-page">
-        <div class="store-head">
-          <p class="store-brand">Your Brand</p>
-          <p class="store-demo" id="store-demo">Demo store</p>
+      <div class="store-bar" aria-hidden="true"><i></i><i></i><i></i><span>hollisandvane.example/bag</span></div>
+      <div class="shop-top">
+        <p class="shop-brand">Hollis &amp; Vane</p>
+        <nav class="shop-nav" aria-hidden="true"><span>New in</span><span>Women</span><span>Men</span><span>Journal</span></nav>
+        <p class="store-demo" id="store-demo">Demo store</p>
+        <button type="button" class="shop-x" id="store-x" aria-label="Close the store">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
+      <div class="shop-page" id="store-cart">
+        <figure class="shop-look">
+          <img id="store-look" alt="The look as you tried it on" draggable="false" />
+          <figcaption>As you tried it on in Orbit</figcaption>
+        </figure>
+        <div class="shop-bag">
+          <h2 id="store-title">Your bag <span id="store-count"></span></h2>
+          <div class="shop-free" id="store-free"><p></p><span><i></i></span></div>
+          <ul class="shop-items" id="store-list"></ul>
+          <dl class="shop-sum">
+            <div><dt>Subtotal</dt><dd id="store-subtotal"></dd></div>
+            <div><dt>Shipping</dt><dd id="store-shipping"></dd></div>
+            <div class="shop-total"><dt>Total</dt><dd id="store-total"></dd></div>
+          </dl>
+          <button type="button" class="shop-pay" id="store-checkout">Checkout</button>
+          <button type="button" class="shop-more" id="store-close">Keep trying on</button>
+          <ul class="shop-promise">
+            <li>Free returns within 30 days</li>
+            <li>Delivered in 2 to 4 days</li>
+          </ul>
         </div>
-        <div id="store-cart">
-          <h2 id="store-title">Your cart</h2>
-          <p class="store-lead">The look you tried on, ready to buy.</p>
-          <ul class="worn store-list" id="store-list"></ul>
-          <div class="store-sum"><span>Subtotal</span><b id="store-total"></b></div>
-          <p class="store-note">Shipping and taxes are worked out at checkout.</p>
-          <div class="row">
-            <button type="button" class="pill" id="store-close">Keep trying on</button>
-            <button type="button" class="pill primary" id="store-checkout">Go to checkout</button>
-          </div>
-        </div>
-        <div id="store-done" hidden>
-          <h2>This is the hand-off</h2>
-          <p class="store-lead">A live store takes over here, with the whole look in its cart. No order was placed.</p>
-          <div class="row">
-            <button type="button" class="pill primary" id="store-back">Back to the fitting room</button>
-          </div>
-        </div>
+      </div>
+      <div class="shop-page shop-done" id="store-done" hidden>
+        <h2>This is the hand-off</h2>
+        <p>A live store takes over here, with the whole look in its bag and the sizes chosen. No order was placed.</p>
+        <button type="button" class="shop-pay" id="store-back">Back to the fitting room</button>
       </div>
     </dialog>
 
