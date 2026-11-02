@@ -306,6 +306,7 @@ input {
 .flip {
   position: relative;
   display: block;
+  transform-origin: 50% -8%; /* The hook: a garment sways from where it hangs. */
   width: 100%;
   height: 100%;
   transform-style: preserve-3d;
