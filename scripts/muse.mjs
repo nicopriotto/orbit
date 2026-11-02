@@ -19,8 +19,12 @@ function apiKey() {
 
 function usage() {
   const rows = existsSync(LOG) ? readFileSync(LOG, 'utf8').trim().split('\n').filter(Boolean).map((row) => JSON.parse(row)) : [];
-  const images = rows.reduce((sum, row) => sum + row.images, 0);
-  return { calls: rows.length, images, usd: +(images * PRICE).toFixed(2) };
+  // Muse Image rows count images; SAM and Spark rows carry what they cost.
+  const images = rows.reduce((sum, row) => sum + (row.images ?? 0), 0);
+  const usd = rows.reduce((sum, row) => sum + (row.usd ?? (row.images ?? 0) * PRICE), 0);
+  const models = {};
+  for (const row of rows) models[row.model ?? 'muse-image-1.0'] = (models[row.model ?? 'muse-image-1.0'] ?? 0) + 1;
+  return { calls: rows.length, images, usd: +usd.toFixed(3), models };
 }
 
 async function save(response, out, prompt) {
