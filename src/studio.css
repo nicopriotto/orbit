@@ -1806,11 +1806,11 @@ dialog .error {
   transition: transform 260ms var(--ease-out), width 260ms var(--ease-out);
 }
 
-/* Margot, the stylist: a card at the head of the wardrobe. Her face, her side of the conversation on paper, the
-   shopper's in ink, and a line to write on. She scrolls away with the rails and a small portrait calls her back. */
+/* Pin, the stylist: a card at the head of the wardrobe. Its face, its side of the conversation on paper, the
+   shopper's in ink, and a line to write on. It scrolls away with the rails and a small portrait calls it back. */
 .stylist {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-columns: 68px minmax(0, 1fr);
   gap: 16px;
   margin: 22px 0 4px;
   padding: 18px 18px 14px;
@@ -1821,8 +1821,8 @@ dialog .error {
 
 .stylist-face {
   position: relative;
-  width: 56px;
-  height: 56px;
+  width: 68px;
+  height: 68px;
 }
 
 .stylist-face img {
