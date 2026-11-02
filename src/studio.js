@@ -266,7 +266,7 @@ function surprise() {
   dress();
 }
 
-/* Margot, the stylist. Muse Spark speaks for her: she can dress the mannequin, pick the room, and say whether what the
+/* Pin, the stylist: a dress form with a pincushion for a hat. Muse Spark speaks for it: it can dress the mannequin, pick the room, and say whether what the
    shopper put together works. The conversation lives in this page only. */
 
 const stylist = $('stylist');
@@ -303,7 +303,7 @@ function said(text, { you, quiet, look } = {}) {
 
 function typing() {
   const bubble = said('', { quiet: true });
-  bubble.innerHTML = '<span class="typing" aria-label="Margot is thinking"><i></i><i></i><i></i></span>';
+  bubble.innerHTML = '<span class="typing" aria-label="Pin is thinking"><i></i><i></i><i></i></span>';
   return bubble;
 }
 
@@ -311,7 +311,7 @@ function syncTalk() {
   $('stylist-go').disabled = talk.ask.value.trim().length < 2 || stylist.hasAttribute('data-thinking');
 }
 
-async function askMargot(words) {
+async function askPin(words) {
   if (words.length < 2 || stylist.hasAttribute('data-thinking')) return;
   const ticket = ++asking;
   said(words, { you: true });
@@ -361,11 +361,11 @@ said(GREETING);
 talk.ask.addEventListener('input', syncTalk);
 talk.addEventListener('submit', (event) => {
   event.preventDefault();
-  askMargot(talk.ask.value.trim());
+  askPin(talk.ask.value.trim());
 });
-for (const chip of $('stylist-chips').querySelectorAll('button')) chip.addEventListener('click', () => askMargot(chip.dataset.ask));
+for (const chip of $('stylist-chips').querySelectorAll('button')) chip.addEventListener('click', () => askPin(chip.dataset.ask));
 
-// Her portrait waits at the foot of the wardrobe once the card has scrolled out of sight.
+// Its portrait waits at the foot of the wardrobe once the card has scrolled out of sight.
 new IntersectionObserver(([entry]) => $('stylist-call').toggleAttribute('data-on', !entry.isIntersecting && $('wardrobe').scrollTop > 0), { root: $('wardrobe'), rootMargin: '-120px 0px 0px 0px' }).observe(stylist);
 $('stylist-call').hidden = false;
 $('stylist-call').addEventListener('click', () => {
