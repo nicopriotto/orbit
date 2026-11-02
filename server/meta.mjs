@@ -160,6 +160,18 @@ export const GARMENT = {
 
 const CATALOGUE = 'You catalogue garments for a fashion store. The two images are the front and the back of one garment. is_garment is false if they are not one garment shown front and back. kind is tops for a t-shirt, shirts for a buttoned shirt, outerwear for a jacket or coat, dresses for a dress, denim for jeans, trousers for any other trousers. Name it the way a premium store would, in two to four words. Give its colour and material in one or two words each, and one sentence of description, under 20 words. segment_as is a short noun phrase that names the garment for a segmentation model, such as "bomber jacket" or "pleated trousers".';
 
+/** One text-only question to Spark whose answer must fit the schema. */
+export async function ask(prompt, name, schema, note) {
+  const { text, usage } = await responses({
+    model: SPARK,
+    reasoning: { effort: 'low' },
+    input: [{ type: 'message', role: 'user', content: [{ type: 'input_text', text: prompt }] }],
+    text: { format: { type: 'json_schema', name, strict: true, schema } },
+  });
+  log(SPARK, (usage.input_tokens ?? 0) * SPARK_USD.input + (usage.output_tokens ?? 0) * SPARK_USD.output, note);
+  return JSON.parse(text);
+}
+
 /** Reads a garment from its two photos and returns it as a catalogue entry, in a fixed shape. */
 export async function catalogue(front, back) {
   if (MOCK) {
