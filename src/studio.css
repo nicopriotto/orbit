@@ -3382,3 +3382,25 @@ dialog.atelier {
     display: none;
   }
 }
+
+/* Glass panels over the room. Dialogs and the wardrobe keep their paper. */
+header,
+.tag,
+.working,
+.rail-label,
+.dock .pill:not(.primary),
+.steps .pill {
+  background: var(--glass);
+  box-shadow: var(--glass-edge);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+
+.dock .pill.primary {
+  background: linear-gradient(180deg, #e4c287, #b98d4f);
+  box-shadow: inset 0 1px 0 rgb(255 245 225 / 0.7), inset 0 -1px 0 rgb(90 60 20 / 0.25), 0 14px 30px -12px rgb(120 80 30 / 0.8);
+}
+
+.tag-shop {
+  border-top-color: rgb(255 240 215 / 0.18);
+}
