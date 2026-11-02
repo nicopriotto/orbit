@@ -51,7 +51,7 @@ const state = { top: null, bottom: null, outer: null };
 const frames = [$('frame-a'), $('frame-b')];
 const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 const money = (value) => `$${value}`;
-const SNEAKERS = { name: 'White leather sneakers', file: 'sneakers' };
+const SNEAKERS = { name: 'White leather sneakers', file: 'sneakers', image: 'studio/set/item-sneakers.webp' };
 
 let wearer = null; // Set while the visitor's own images replace the mannequin: { look, front, back }.
 let shown = FIRST_LOOK; // The look on the mannequin, which trails the choice while Muse dresses it.
@@ -83,7 +83,6 @@ function underJacket() {
 }
 
 function toggle(item) {
-  stylistSays('');
   remember();
   leaveWearer();
   if (worn(item)) state[item.slot] = null;
@@ -253,7 +252,6 @@ const covered = ({ top, bottom }) => top?.whole || (bottom && top);
 
 /** Surprise deals only from whole outfits already saved, so it never spends anything or leaves the figure half dressed. */
 function surprise() {
-  stylistSays('');
   remember();
   leaveWearer();
   const options = Object.keys(saved).filter((look) => look.startsWith(MAN) === Boolean(figure) && covered(LOOKS.get(plainLook(look)) ?? {}) && saved[look].length === VIEWS.length && look !== chosen());
@@ -268,65 +266,111 @@ function surprise() {
   dress();
 }
 
-/* The stylist: a few words in, one outfit from the catalogue out, chosen by Muse Spark, with the room and the reason */
+/* Margot, the stylist. Muse Spark speaks for her: she can dress the mannequin, pick the room, and say whether what the
+   shopper put together works. The conversation lives in this page only. */
 
 const stylist = $('stylist');
+const thread = $('stylist-thread');
+const talk = $('stylist-form');
+const GREETING = 'Tell me where you are going and I will put a look together. Or dress the mannequin yourself and ask what I think.';
+const conversation = [{ role: 'stylist', text: GREETING }];
 let asking = 0;
-if (matchMedia('(max-width: 600px)').matches) stylist.ask.placeholder = 'Ask the stylist: a dinner outdoors…';
 
-function stylistSays(text, mood) {
-  const note = $('stylist-note');
-  note.hidden = !text;
-  note.toggleAttribute('data-waiting', mood === 'waiting');
-  note.toggleAttribute('data-failed', mood === 'failed');
-  if ($('stylist-text').textContent === text) return;
-  $('stylist-text').textContent = text;
-  if (text && motion) note.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+function said(text, { you, quiet, look } = {}) {
+  const bubble = document.createElement('p');
+  bubble.className = 'said';
+  bubble.toggleAttribute('data-you', Boolean(you));
+  bubble.toggleAttribute('data-quiet', Boolean(quiet));
+  bubble.textContent = text;
+  if (look) {
+    const row = document.createElement('span');
+    row.className = 'said-look';
+    const { top, bottom, outer } = LOOKS.get(plainLook(look)) ?? {};
+    for (const item of [outer, top, bottom, SNEAKERS].filter(Boolean)) {
+      const image = document.createElement('img');
+      image.src = item.image;
+      image.alt = item.name;
+      image.title = item.name;
+      row.append(image);
+    }
+    bubble.append(row);
+  }
+  thread.append(bubble);
+  if (motion) bubble.animate([{ opacity: 0, transform: 'translateY(6px) scale(0.97)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+  thread.scrollTo({ top: thread.scrollHeight, behavior: motion ? 'smooth' : 'auto' });
+  return bubble;
 }
 
-function syncStylist() {
-  $('stylist-go').disabled = stylist.ask.value.trim().length < 2 || stylist.hasAttribute('data-thinking');
+function typing() {
+  const bubble = said('', { quiet: true });
+  bubble.innerHTML = '<span class="typing" aria-label="Margot is thinking"><i></i><i></i><i></i></span>';
+  return bubble;
 }
 
-stylist.ask.addEventListener('input', syncStylist);
-stylist.addEventListener('submit', async (event) => {
-  event.preventDefault();
-  const words = stylist.ask.value.trim();
+function syncTalk() {
+  $('stylist-go').disabled = talk.ask.value.trim().length < 2 || stylist.hasAttribute('data-thinking');
+}
+
+async function askMargot(words) {
   if (words.length < 2 || stylist.hasAttribute('data-thinking')) return;
   const ticket = ++asking;
+  said(words, { you: true });
+  conversation.push({ role: 'shopper', text: words });
+  talk.ask.value = '';
+  // After the first question only the one about the look on the mannequin stays: it is always worth asking.
+  for (const chip of $('stylist-chips').querySelectorAll('button')) chip.hidden = !/think/i.test(chip.dataset.ask);
   stylist.toggleAttribute('data-thinking', true);
-  stylist.ask.disabled = true;
-  syncStylist();
-  stylistSays('is going through the wardrobe…', 'waiting');
+  syncTalk();
+  const dots = typing();
   try {
     const response = await fetch('api/stylist', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ask: words, figure, look: chosen() }),
+      body: JSON.stringify({ messages: conversation, figure, look: undressed() ? '' : chosen() }),
     });
     const answer = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(answer.error);
     if (ticket !== asking) return;
-    stylistSays(answer.note);
-    stylist.ask.value = '';
-    if (answer.look !== chosen() || wearer) {
+    dots.remove();
+    const look = answer.look && LOOKS.has(plainLook(answer.look)) ? answer.look : null;
+    said(answer.reply, { look });
+    conversation.push({ role: 'stylist', text: answer.reply });
+    if (look && (look !== chosen() || wearer)) {
       remember();
       leaveWearer();
-      wearLook(answer.look);
+      wearLook(look);
       renderLook();
       dress();
     }
     const place = PLACES.find((entry) => entry.id === answer.place);
     if (place && place !== room) setPlace(place);
   } catch (error) {
-    if (ticket === asking) stylistSays(error.message || 'The stylist is busy. Try again in a moment.', 'failed');
+    if (ticket !== asking) return;
+    dots.remove();
+    said(error.message || 'I lost my train of thought. Ask me again in a moment.', { quiet: true });
+    conversation.pop();
   } finally {
     if (ticket === asking) {
       stylist.removeAttribute('data-thinking');
-      stylist.ask.disabled = false;
-      syncStylist();
+      syncTalk();
     }
   }
+}
+
+said(GREETING);
+talk.ask.addEventListener('input', syncTalk);
+talk.addEventListener('submit', (event) => {
+  event.preventDefault();
+  askMargot(talk.ask.value.trim());
+});
+for (const chip of $('stylist-chips').querySelectorAll('button')) chip.addEventListener('click', () => askMargot(chip.dataset.ask));
+
+// Her portrait waits at the foot of the wardrobe once the card has scrolled out of sight.
+new IntersectionObserver(([entry]) => $('stylist-call').toggleAttribute('data-on', !entry.isIntersecting && $('wardrobe').scrollTop > 0), { root: $('wardrobe'), rootMargin: '-120px 0px 0px 0px' }).observe(stylist);
+$('stylist-call').hidden = false;
+$('stylist-call').addEventListener('click', () => {
+  $('wardrobe').scrollTo({ top: 0, behavior: motion ? 'smooth' : 'auto' });
+  talk.ask.focus({ preventScroll: true });
 });
 
 function wearLook(look) {
@@ -1075,6 +1119,10 @@ addEventListener('pagehide', bin);
 addEventListener('orbit:back', syncPrint);
 
 loadPrints().then((saved) => {
+  // Photos kept before the shopper's own pictures were stored with them cannot be worn again, so they are let go.
+  const old = saved.filter((print) => !print.person?.front);
+  old.forEach((print) => dropPrint(print.id));
+  saved = saved.filter((print) => !old.includes(print));
   prints = [...prints, ...saved.filter((print) => !prints.some((entry) => entry.id === print.id))].slice(0, KEEP);
   renderPile();
 });
