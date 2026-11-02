@@ -3886,3 +3886,237 @@ body:not([data-intro]) .intro {
   opacity: 0;
   pointer-events: none;
 }
+
+/* The look as a paper price tag hanging from the figure's left hand on a brass thread. A phone has no room beside the
+   figure, so there the look stays in the dock as before. */
+@media (min-width: 981px) {
+  .snap {
+    left: calc(16vw - var(--width) / 2);
+  }
+
+  .figure .tag {
+    position: absolute;
+    z-index: 6;
+    top: 55%;
+    right: 77%;
+    bottom: auto;
+    left: auto;
+    width: 214px;
+    min-width: 0;
+    border-radius: 4px;
+    background: linear-gradient(160deg, #f8f0e0, #eadcc2);
+    color: #2c2118;
+    box-shadow: 0 18px 34px -14px rgb(0 0 0 / 0.7), inset 0 0 0 1px rgb(255 255 255 / 0.5);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    pointer-events: auto;
+    rotate: -5deg;
+    transform-origin: calc(100% - 15px) 15px;
+  }
+
+  .figure .tag[data-empty] {
+    display: none;
+  }
+
+  /* The eyelet, and the thread from it up to the hand. */
+  .figure .tag::before,
+  .figure .tag::after {
+    content: '';
+    position: absolute;
+    pointer-events: none;
+  }
+
+  .figure .tag::after {
+    z-index: 2;
+    top: 10px;
+    right: 10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1a120b;
+    box-shadow: 0 0 0 2px #cda66b;
+  }
+
+  .figure .tag::before {
+    z-index: 1;
+    top: -30px;
+    right: 14px;
+    width: 2px;
+    height: 45px;
+    border-radius: 2px;
+    background: linear-gradient(#e2c48d, #a8834c);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.35);
+    transform-origin: 50% 100%;
+    rotate: 24deg;
+  }
+
+  .figure .tag .tag-head {
+    grid-template-columns: 1fr auto;
+    row-gap: 6px;
+    padding: 14px 16px 12px;
+  }
+
+  .figure .tag .tag-label {
+    grid-column: 1;
+    grid-row: 1;
+    color: #9a7b4f;
+    font: 600 10px/1 var(--sans);
+    letter-spacing: 0.18em;
+  }
+
+  .figure .tag .tag-total {
+    grid-column: 1;
+    grid-row: 2;
+    color: #2c2118;
+    font: 600 36px/1 var(--serif);
+  }
+
+  .figure .tag .tag-head svg {
+    grid-column: 2;
+    grid-row: 2;
+    stroke: #9a7b4f;
+  }
+
+  .figure .tag .tag-pieces {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    display: flex;
+    gap: 6px;
+    font: italic 500 15px/1.3 var(--serif);
+  }
+
+  .figure .tag .tag-pieces img {
+    width: 40px;
+    height: 48px;
+    padding: 3px;
+    border-radius: 6px;
+    background: rgb(255 255 255 / 0.55);
+    object-fit: contain;
+    box-shadow: inset 0 0 0 1px rgb(44 33 24 / 0.08);
+  }
+
+  .figure .tag[data-open] .tag-pieces {
+    display: none;
+  }
+
+  .figure .tag[data-open] .tag-label {
+    grid-row: 1;
+  }
+
+  .figure .tag .tag-shop {
+    min-height: 40px;
+    padding: 0 14px 1px 16px;
+    border-top-color: rgb(44 33 24 / 0.12);
+    color: #2c2118;
+    font: 600 13px/1 var(--sans);
+  }
+
+  .figure .tag .worn {
+    padding: 0 12px;
+  }
+
+  .figure .tag .worn li {
+    grid-template-columns: 34px 1fr auto auto;
+    column-gap: 8px;
+    min-height: 50px;
+    border-bottom-color: rgb(44 33 24 / 0.12);
+  }
+
+  .figure .tag .worn img {
+    width: 34px;
+    height: 40px;
+  }
+
+  .figure .tag .worn b {
+    font-size: 15px;
+  }
+
+  .figure .tag .worn i {
+    color: #2c2118;
+    font-size: 13px;
+  }
+
+  .figure .tag .worn .round {
+    width: 26px;
+    height: 26px;
+    background: rgb(44 33 24 / 0.07);
+    color: #2c2118;
+  }
+}
+
+/* On a phone Pin folds into one line, so the rails come first; touching it opens the conversation. */
+@media (max-width: 600px) {
+  .stylist:not([data-open]) {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+    padding: 6px 8px 6px 6px;
+    border-radius: 999px;
+  }
+
+  .stylist:not([data-open]) .stylist-face {
+    width: 34px;
+    height: 34px;
+  }
+
+  .stylist:not([data-open]) :is(.stylist-name, .stylist-thread, .stylist-chips) {
+    display: none;
+  }
+
+  .stylist:not([data-open]) .stylist-main {
+    align-content: center;
+  }
+
+  .stylist:not([data-open]) .stylist-form {
+    border: 0;
+  }
+
+  .stylist:not([data-open]) .stylist-form input {
+    height: 34px;
+    font-size: 16px;
+  }
+
+  .stylist[data-open] .stylist-face {
+    cursor: pointer;
+  }
+}
+
+/* Each room says its name under it: the chosen one always, the others when pointed at. */
+@media (min-width: 981px) {
+  .places .place {
+    position: relative;
+    overflow: visible;
+  }
+
+  .places .place::after {
+    content: attr(aria-label);
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 50%;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: var(--glass);
+    box-shadow: var(--glass-edge);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    color: var(--paper);
+    font: 500 11.5px/1 var(--sans);
+    white-space: nowrap;
+    opacity: 0;
+    translate: -50% -4px;
+    transition: opacity 180ms ease, translate 220ms var(--ease-out);
+    pointer-events: none;
+  }
+
+  .places .place[aria-pressed='true']::after {
+    opacity: 1;
+    translate: -50% 0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .places .place:hover::after {
+      opacity: 1;
+      translate: -50% 0;
+    }
+  }
+}
