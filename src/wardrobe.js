@@ -52,11 +52,45 @@ export const plainLook = (id) => (id.startsWith(MAN) ? id.slice(MAN.length) : id
 
 // Every combination the catalogue allows, and so everything the server will ever agree to generate.
 export const LOOKS = new Map();
-for (const outer of [null, ...jackets]) {
-  for (const top of [null, ...tops]) {
-    for (const bottom of top?.whole ? [null] : [null, ...bottoms]) {
-      const id = lookId(top, bottom, outer);
-      if ((top || bottom || outer) && !LOOKS.has(id)) LOOKS.set(id, { top, bottom, outer });
+
+/** A store's garment, in the shape the catalogue uses. Its images are served by the catalogue API. */
+export function storeItem({ id, name, price, kind, description, colour, material }) {
+  const of = KINDS.find((entry) => entry.id === kind);
+  return {
+    id,
+    name,
+    price,
+    file: id,
+    category: of.id,
+    slot: of.slot,
+    length: of.length,
+    whole: of.whole,
+    store: true,
+    description,
+    colour,
+    material,
+    image: `api/catalog/files/item-${id}.webp`,
+    back: `api/catalog/files/item-${id}-back.webp`,
+  };
+}
+
+/** Rebuilds the catalogue from the base set and the store's live garments. */
+export function setStoreItems(entries) {
+  const added = entries.map(storeItem);
+  WARDROBE.splice(0, WARDROBE.length, ...KINDS.flatMap((kind) => [
+    ...added.filter((item) => item.category === kind.id),
+    ...BASE.filter((item) => item.category === kind.id),
+  ]));
+  const pick = (slot) => WARDROBE.filter((item) => item.slot === slot);
+  LOOKS.clear();
+  for (const outer of [null, ...pick('outer')]) {
+    for (const top of [null, ...pick('top')]) {
+      for (const bottom of top?.whole ? [null] : [null, ...pick('bottom')]) {
+        const id = lookId(top, bottom, outer);
+        if ((top || bottom || outer) && !LOOKS.has(id)) LOOKS.set(id, { top, bottom, outer });
+      }
     }
   }
 }
+
+setStoreItems([]);
