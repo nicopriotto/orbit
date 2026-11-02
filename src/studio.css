@@ -3471,3 +3471,86 @@ header,
   outline: 2px solid var(--brass);
   outline-offset: 2px;
 }
+
+/* The entrance: a dark curtain with the name while the first room and look load, then the room lights up, the figure
+   rises onto the stand and the controls arrive. */
+.intro {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 26px;
+  background: #140d08;
+  color: var(--paper);
+  transition: opacity 700ms ease 120ms;
+}
+
+body:not([data-intro]) .intro {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-mark {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  animation: intro-in 700ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.intro-mark svg {
+  width: 52px;
+  height: 52px;
+}
+
+.intro-mark ellipse {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.intro-mark b {
+  font: 600 56px/1 var(--serif);
+  letter-spacing: 0.01em;
+}
+
+.intro-line {
+  width: 120px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--brass), transparent);
+  transform-origin: left;
+  animation: intro-line 1100ms cubic-bezier(0.65, 0, 0.35, 1) 150ms both;
+}
+
+@keyframes intro-in {
+  from { opacity: 0; transform: translateY(8px); filter: blur(6px); }
+}
+
+@keyframes intro-line {
+  from { transform: scaleX(0); }
+}
+
+#stage {
+  transition: transform 1700ms cubic-bezier(0.16, 1, 0.3, 1), filter 1300ms ease;
+}
+
+[data-intro] #stage {
+  transform: scale(1.06);
+  filter: brightness(0.35);
+}
+
+/* Nothing of the room's controls shows before the curtain lifts; the script brings them in one after another. */
+[data-intro] :is(header, .places, .tag, .dock, .steps, .wardrobe-rail, .snap, .figure) {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-mark,
+  .intro-line {
+    animation: none;
+  }
+
+  #stage {
+    transition: none;
+  }
+}
