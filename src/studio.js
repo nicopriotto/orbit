@@ -525,11 +525,62 @@ const ARROW = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"
 const PREVIOUS = ARROW('M15 5l-7 7 7 7');
 const NEXT = ARROW('M9 5l7 7-7 7');
 const TAKE_OFF = ARROW('M6 6l12 12M18 6L6 18');
+const BIN = ARROW('M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3');
 const TURN_OVER = ARROW('M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5');
 
 $('sections').append(...KINDS.map(createSection));
 const fitAll = () => document.querySelectorAll('.section').forEach(fitArrows);
 addEventListener('resize', fitAll);
+
+/* The store's garments: hung from the add-a-garment flow, and taken out again with a moment to undo */
+
+/** Reads the catalogue again and redraws the rails. What is worn keeps its place if it is still in the catalogue. */
+async function refreshWardrobe(added) {
+  const entries = await fetch('api/catalog').then((response) => response.json()).catch(() => null);
+  if (!entries) return;
+  setStoreItems(entries);
+  const same = (item) => (item ? WARDROBE.find((entry) => entry.id === item.id) ?? null : null);
+  const before = chosen();
+  Object.assign(state, { top: same(state.top), bottom: same(state.bottom), outer: same(state.outer) });
+  spots.length = 0;
+  $('sections').replaceChildren(...KINDS.map(createSection));
+  requestAnimationFrame(fitAll);
+  label();
+  if (chosen() !== before) {
+    renderLook();
+    dress();
+  }
+  if (!added) return;
+  const spot = spots.find((entry) => entry.item.id === added.id)?.spot;
+  showWardrobe(true);
+  const kind = KINDS.find((entry) => entry.id === added.kind);
+  setTimeout(() => {
+    jumpTo(kind);
+    spot?.toggleAttribute('data-new', true);
+  }, motion ? 480 : 0);
+}
+
+let undoGarment = null;
+
+async function takeOut(item) {
+  if (worn(item) && !$('wardrobe').hasAttribute('data-locked')) toggle(item);
+  const response = await fetch(`api/catalog/${item.id}`, { method: 'DELETE' }).catch(() => null);
+  if (!response?.ok) return flash('That garment could not be taken out');
+  await refreshWardrobe();
+  bin();
+  clearTimeout(undoGarment?.timer);
+  undoGarment = {
+    id: item.id,
+    timer: setTimeout(() => {
+      undoGarment = null;
+      hideToast();
+    }, UNDO_MS),
+  };
+  $('toast-text').textContent = `${item.name} taken out`;
+  showToast();
+}
+
+addEventListener('orbit:catalog', (event) => refreshWardrobe(event.detail.added));
 
 /* Quick access: one bar that stays on top and follows the scroll, with a single mark sliding between the kinds. */
 
