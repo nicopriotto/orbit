@@ -42,7 +42,11 @@ function drawRoom(context, place, plate, stand, body) {
   const scale = (place.zoom * ROOM_HEIGHT) / plate.naturalHeight;
   const roomWidth = plate.naturalWidth * scale;
   const roomHeight = plate.naturalHeight * scale;
+  // The same cinema light as the stage: the room graded warmer and quieter, a beam on the stand, the edges in shadow.
+  context.filter = 'contrast(1.08) saturate(0.82) sepia(0.12) brightness(0.88)';
   context.drawImage(plate, middle - roomWidth / 2, ROOM_FOOT - roomHeight, roomWidth, roomHeight);
+  context.filter = 'none';
+  drawLight(context);
 
   const figureWidth = FIGURE_HEIGHT * FIGURE_RATIO;
   const at = (share) => FIGURE_TOP + FIGURE_HEIGHT * share;
@@ -53,13 +57,34 @@ function drawRoom(context, place, plate, stand, body) {
   context.drawImage(body, middle - figureWidth / 2, FIGURE_TOP, figureWidth, FIGURE_HEIGHT);
 }
 
+/** Behind the figure, as on the stage, so the clothes keep their colour. */
+function drawLight(context) {
+  const { width, height } = PHOTO;
+  context.save();
+  context.translate(width / 2, height * 0.44);
+  context.scale(0.42, 1);
+  const beam = context.createRadialGradient(0, 0, 0, 0, 0, height * 0.62);
+  beam.addColorStop(0, 'rgb(255 232 190 / 0.26)');
+  beam.addColorStop(1, 'rgb(255 232 190 / 0)');
+  context.fillStyle = beam;
+  context.fillRect(-width * 2, -height, width * 4, height * 2);
+  context.restore();
+  const shade = context.createLinearGradient(0, 0, 0, height);
+  shade.addColorStop(0, 'rgb(18 10 4 / 0.32)');
+  shade.addColorStop(0.24, 'rgb(18 10 4 / 0)');
+  shade.addColorStop(0.72, 'rgb(18 10 4 / 0)');
+  shade.addColorStop(1, 'rgb(18 10 4 / 0.4)');
+  context.fillStyle = shade;
+  context.fillRect(0, 0, width, height);
+}
+
 /** A faint warmth and darker corners, which is most of what makes it read as a print rather than a screenshot. */
 function drawFilm(context) {
   context.fillStyle = 'rgb(255 232 196 / 0.07)';
   context.fillRect(0, 0, PHOTO.width, PHOTO.height);
   const corners = context.createRadialGradient(PHOTO.width / 2, PHOTO.height * 0.46, PHOTO.height * 0.42, PHOTO.width / 2, PHOTO.height * 0.46, PHOTO.height * 0.8);
   corners.addColorStop(0, 'rgb(18 12 8 / 0)');
-  corners.addColorStop(1, 'rgb(18 12 8 / 0.34)');
+  corners.addColorStop(1, 'rgb(18 12 8 / 0.5)');
   context.fillStyle = corners;
   context.fillRect(0, 0, PHOTO.width, PHOTO.height);
 }
