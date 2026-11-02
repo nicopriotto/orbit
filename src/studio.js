@@ -2,6 +2,7 @@ import { KEEP, dropPrint, keepPrint, loadPrints } from './album.js';
 import { APP_NAME, makePrint } from './print.js';
 import { KINDS, LOOKS, MAN, UNDER, WARDROBE, lookId, plainLook, setStoreItems } from './wardrobe.js';
 import './atelier.js';
+import NOTES from './catalogue-notes.json';
 
 // The store's own garments join the catalogue before anything is drawn. Without the API the base catalogue is enough.
 setStoreItems(await fetch('api/catalog').then((response) => (response.ok ? response.json() : [])).catch(() => []));
@@ -399,9 +400,62 @@ function showStorePane(done) {
   $('store-done').hidden = !done;
 }
 
+/* The brand's own store, as it would open from the fitting room: a page of theirs, not ours, so it has its own look. */
+const FREE_SHIPPING = 250;
+const SIZES = { top: ['XS', 'S', 'M', 'L', 'XL'], outer: ['XS', 'S', 'M', 'L', 'XL'], bottom: ['26', '28', '30', '32', '34'], shoes: ['38', '39', '40', '41', '42', '43'] };
+const sizes = {}; // What the shopper picked, kept while the page is open.
+
+function stock(id) {
+  const hash = [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return hash % 5 === 0 ? 'Only 2 left' : 'In stock';
+}
+
+function bagItem(item, slot) {
+  const notes = item.store ? item : NOTES[item.id] ?? {};
+  const detail = [notes.colour, notes.material].filter(Boolean).map((word) => word[0].toUpperCase() + word.slice(1)).join(' · ');
+  const options = SIZES[slot];
+  sizes[item.id] ??= options[Math.floor(options.length / 2)];
+  const row = document.createElement('li');
+  row.className = 'shop-item';
+  const low = slot !== 'shoes' && stock(item.id) !== 'In stock';
+  row.innerHTML = `
+    <span class="shop-thumb"><img src="${item.image}" alt="" draggable="false" /></span>
+    <div class="shop-info">
+      <p class="shop-name"><b>${item.name}</b><span>${item.price ? money(item.price) : 'Included'}</span></p>
+      <p class="shop-detail">${detail || (slot === 'shoes' ? 'White · Leather' : '')}</p>
+      <div class="shop-sizes" role="radiogroup" aria-label="Size of ${item.name}"></div>
+      <p class="shop-stock"${low ? ' data-low' : ''}>${slot === 'shoes' ? 'Comes with the look' : stock(item.id)}</p>
+    </div>`;
+  const group = row.querySelector('.shop-sizes');
+  for (const size of options) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = size;
+    button.setAttribute('role', 'radio');
+    const mark = () => group.querySelectorAll('button').forEach((each) => each.setAttribute('aria-checked', String(each.textContent === sizes[item.id])));
+    button.addEventListener('click', () => {
+      sizes[item.id] = size;
+      mark();
+    });
+    group.append(button);
+    mark();
+  }
+  return row;
+}
+
 function shop() {
-  $('store-list').replaceChildren(...lookRows());
-  $('store-total').textContent = $('total').textContent;
+  const pieces = [['outer', state.outer], ['top', state.top], ['bottom', state.bottom]].filter(([, item]) => item);
+  const subtotal = pieces.reduce((sum, [, item]) => sum + item.price, 0);
+  $('store-list').replaceChildren(...pieces.map(([slot, item]) => bagItem(item, slot)), bagItem({ ...SNEAKERS, id: 'sneakers', price: 0 }, 'shoes'));
+  $('store-count').textContent = `(${pieces.length + 1})`;
+  $('store-subtotal').textContent = money(subtotal);
+  $('store-shipping').textContent = subtotal >= FREE_SHIPPING ? 'Free' : money(12);
+  $('store-total').textContent = money(subtotal + (subtotal >= FREE_SHIPPING ? 0 : 12));
+  const share = Math.min(subtotal / FREE_SHIPPING, 1);
+  $('store-free').querySelector('p').textContent = share === 1 ? 'Free express shipping is yours' : `${money(FREE_SHIPPING - subtotal)} away from free express shipping`;
+  $('store-free').querySelector('i').style.transform = `scaleX(${share})`;
+  $('store-look').src = wearer ? wearer.front : picture(shown, 'front');
+  $('store-look').toggleAttribute('data-person', Boolean(wearer));
   $('store-demo').hidden = Boolean(STORE);
   showStorePane(false);
   $('store').showModal();
@@ -418,7 +472,7 @@ $('shop').addEventListener('click', shop);
 $('shop-worn').addEventListener('click', shop);
 $('shop-bag').addEventListener('click', shop);
 $('store-checkout').addEventListener('click', checkout);
-for (const id of ['store-close', 'store-back']) $(id).addEventListener('click', () => $('store').close());
+for (const id of ['store-close', 'store-back', 'store-x']) $(id).addEventListener('click', () => $('store').close());
 $('store').addEventListener('click', (e) => {
   if (e.target === $('store')) $('store').close();
 });
