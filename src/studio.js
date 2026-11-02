@@ -625,7 +625,9 @@ function createSpot(item) {
   const button = spot.querySelector('.piece');
   const over = spot.querySelector('.turn-over');
   button.addEventListener('click', () => {
-    if (!$('wardrobe').hasAttribute('data-locked')) toggle(item);
+    if ($('wardrobe').hasAttribute('data-locked')) return;
+    toggle(item);
+    swing(spot, 1);
   });
   const turn = (turned) => {
     spot.toggleAttribute('data-turned', turned);
@@ -637,6 +639,28 @@ function createSpot(item) {
   });
   spots.push({ item, spot, button, note: spot.querySelector('em') });
   return spot;
+}
+
+/** A garment taken from or put back on the rail sways on its hanger, then comes to rest. */
+function swing(spot, strength) {
+  if (!motion) return;
+  const flip = spot.querySelector('.flip');
+  flip.animate([0, 5, -3.2, 1.6, -0.6, 0].map((degrees) => ({ rotate: `${degrees * strength}deg` })), { duration: 1100, easing: 'ease-out' });
+}
+
+/** When the wardrobe opens, the garments in sight arrive one after another, each with a small sway. */
+function arrive() {
+  if (!motion) return;
+  const bottom = $('wardrobe').getBoundingClientRect().bottom;
+  const inSight = spots.filter(({ spot }) => {
+    const box = spot.getBoundingClientRect();
+    return box.width && box.top < bottom && box.left < innerWidth;
+  });
+  inSight.forEach(({ spot }, index) => {
+    const delay = 140 + index * 45;
+    spot.animate([{ opacity: 0, translate: '0 14px' }, { opacity: 1, translate: '0 0' }], { duration: 520, delay, easing: 'cubic-bezier(0.23, 1, 0.32, 1)', fill: 'backwards' });
+    setTimeout(() => swing(spot, 0.6), delay + 120);
+  });
 }
 
 function fitArrows(section) {
@@ -782,6 +806,7 @@ function showWardrobe(visible) {
     fitAll();
     pinned = null;
     followScroll();
+    arrive();
   }
 }
 
