@@ -630,6 +630,7 @@ function letGo(event) {
   if (!moved) return;
   // A flick carries on a little way before it settles.
   turnTo(nearestStop(angle + Math.max(Math.min(speed * 0.18, 120), -120)));
+  tick();
   syncPrint();
 }
 $('grab').addEventListener('pointerup', letGo);
@@ -682,6 +683,7 @@ function createSpot(item) {
     if ($('wardrobe').hasAttribute('data-locked')) return;
     toggle(item);
     swing(spot, 1);
+    tick();
   });
   const turn = (turned) => {
     spot.toggleAttribute('data-turned', turned);
@@ -1035,11 +1037,24 @@ async function syncPrint() {
   for (const gone of await keepPrint(print, prints)) forget(gone);
   prints = prints.slice(0, KEEP);
   renderPile(fresh ? id : null);
+  if (fresh) flashBulb();
   if ($('snap-view').open && (opened === id || fresh)) showPrint(id, openedSide);
 }
 
 const PILE = 3; // Prints drawn in the pile; the rest are counted on its label.
 const DEVELOP_MS = 3800; // Its way out and the photo developing, as timed in the stylesheet.
+
+/** A new instant photo is taken with a flash: the room goes white for a blink and settles back. */
+function flashBulb() {
+  if (!motion) return;
+  const flash = document.createElement('div');
+  flash.className = 'flash';
+  document.body.append(flash);
+  flash.animate([{ opacity: 0 }, { opacity: 0.75, offset: 0.12 }, { opacity: 0 }], { duration: 650, easing: 'ease-out' }).finished.then(() => flash.remove());
+}
+
+/** A small tick in the hand on phones that have one, when something settles into place. */
+const tick = () => navigator.vibrate?.(8);
 
 function renderPile(fresh) {
   const pile = $('snap-pile');
