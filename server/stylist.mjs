@@ -35,7 +35,7 @@ function line(item) {
   return `${item.id} | ${kindOf(item)} | ${item.name} | $${item.price}${item.store ? ' | new in' : ''}${words ? ` | ${words}` : ''}`;
 }
 
-const pieces = ({ top, bottom, outer }) => [outer && `jacket ${outer.id}`, top && `top ${top.id}`, bottom && `bottom ${bottom.id}`].filter(Boolean).join(', ');
+const named = ({ top, bottom, outer }) => [outer && `${outer.name} (${outer.id}) worn open`, top && `${top.name} (${top.id})`, bottom && `${bottom.name} (${bottom.id})`].filter(Boolean).join(', ');
 
 /** Whole outfits already photographed on this mannequin: changing into one costs nothing, so the stylist leans on them. */
 function photographed(figure) {
@@ -45,23 +45,39 @@ function photographed(figure) {
     .filter((look) => look && (look.top?.whole || (look.top && look.bottom)));
 }
 
-function prompt(words, figure, current) {
+const RULES = `How garments go together, which you check whenever an outfit is on the table:
+- An outfit is a dress, or a top (tee or shirt) with a bottom (denim or trousers). A jacket or coat over it is optional and is always worn open, so what is under it shows and has to work with it.
+- A dress takes no trousers or jeans under it. A dress can take a jacket or coat over it.
+- Layering only makes sense when the inner layer stays visible or adds something: a tee or shirt under an open jacket is fine. Something closed and covering, like a buttoned coat over a dress of the same length, hides what is under it.
+- Judge colour (tones that clash or that disappear into each other), formality (a tailored wool trouser with a heavyweight tee reads deliberate; a peacoat over a slip dress needs a reason) and season (linen and wool, light and heavy).
+- White leather sneakers always come with the look; they go with everything here.`;
+
+function prompt(figure, current, turns) {
   const ready = photographed(figure);
   return [
-    'You are the in-store stylist of a premium clothing brand. Pick one complete outfit from the catalogue below for the shopper, and the room to show it in.',
-    `The outfit is for the ${figure ? 'man' : 'woman'}'s mannequin.${figure ? ' The man does not wear dresses.' : ''} White leather sneakers are always included.`,
-    'An outfit is either a dress, or a top (tee or shirt) with a bottom (denim or trousers). A jacket or coat over it is optional; it is worn open. A dress takes no bottom.',
-    'Use only ids from the catalogue. Garments marked "new in" just arrived; suggest one when it suits.',
-    'note: one or two sentences to the shopper, under 30 words, saying why these pieces work for what they asked. Warm and specific, no greeting, no exclamation marks, never mention prices or ids.',
+    'You are Margot, the in-store stylist of a premium clothing brand. You speak to the shopper in the wardrobe of its virtual fitting room, where a mannequin wears what is chosen. Warm, precise, a little dry; never gushing. Answer in the language the shopper writes in.',
+    `The mannequin is the ${figure ? 'man' : 'woman'}'s.${figure ? ' The man does not wear dresses.' : ''}`,
+    '',
+    RULES,
+    '',
+    'Each answer:',
+    '- reply: one to three short sentences, under 45 words. No greeting after the first turn, no exclamation marks, no lists, never prices or ids.',
+    '- If they ask for something to wear, or a look would answer them better than words, choose one complete outfit from the catalogue: action "dress", with top, bottom and outer (or "none"), and a room, and say in reply why it works for them.',
+    '- If they ask what you think of what is on, say honestly whether the pieces go together and why, using the rules. If one piece is wrong, say which and what you would put instead, and dress the mannequin in that fix with action "dress".',
+    '- Otherwise, or if you need to ask something first, action "none".',
+    '- place: the room that suits the outfit, or "keep" to leave it.',
+    '- Garments marked "new in" just arrived; suggest one when it suits.',
+    ready.length ? `- Outfits already photographed show at once; prefer one when it suits as well: ${ready.map((look) => `[${named(look)}]`).join(' ')}.` : '',
     '',
     'Catalogue (id | kind | name | price | colour; material; description):',
     ...WARDROBE.map(line),
     '',
     `Rooms: ${Object.entries(PLACES).map(([id, text]) => `${id} (${text})`).join('; ')}.`,
-    ready.length ? `Outfits already photographed, which show at once (prefer one if it suits just as well): ${ready.map((look) => `[${pieces(look)}]`).join(' ')}.` : '',
-    current ? `On the mannequin now: ${current}.` : '',
     '',
-    `The shopper says: "${words}"`,
+    `On the mannequin now: ${current ? named(current) : 'nothing yet'}.`,
+    '',
+    'The conversation so far:',
+    ...turns.map((turn) => `${turn.role === 'stylist' ? 'Margot' : 'Shopper'}: ${turn.text}`),
   ].filter((part) => part !== '').join('\n');
 }
 
