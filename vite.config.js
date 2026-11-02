@@ -20,4 +20,16 @@ const api = {
   },
 };
 
-export default defineConfig({ base: './', plugins: [api], server: { watch: { ignored: ['**/cache/**'] } } });
+// Link previews need absolute addresses. Once the site has one, SITE_URL=https://… makes them so; until then they stay relative.
+const site = {
+  name: 'site-url',
+  transformIndexHtml(html) {
+    const url = process.env.SITE_URL?.replace(/\/$/, '');
+    if (!url) return html;
+    return html
+      .replace('content="og.jpg"', `content="${url}/og.jpg"`)
+      .replace('<meta property="og:type"', `<meta property="og:url" content="${url}/" />\n    <meta property="og:type"`);
+  },
+};
+
+export default defineConfig({ base: './', plugins: [api, site], server: { watch: { ignored: ['**/cache/**'] } } });
