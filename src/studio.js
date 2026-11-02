@@ -976,6 +976,8 @@ $('snap-delete').addEventListener('click', () => {
   const index = prints.findIndex((entry) => entry.id === opened);
   if (index < 0) return;
   bin();
+  clearTimeout(undoGarment?.timer);
+  undoGarment = null;
   const [print] = prints.splice(index, 1);
   binned = { print, index, live: print.id === liveId, timer: setTimeout(() => { bin(); hideToast(); }, UNDO_MS) };
   // The person stays on the stand without a photo until the room changes or Undo brings it back.
@@ -986,7 +988,16 @@ $('snap-delete').addEventListener('click', () => {
   showToast();
 });
 
-$('toast-undo').addEventListener('click', () => {
+$('toast-undo').addEventListener('click', async () => {
+  if (undoGarment) {
+    const { id, timer } = undoGarment;
+    clearTimeout(timer);
+    undoGarment = null;
+    hideToast();
+    await fetch(`api/catalog/${id}/restore`, { method: 'POST' }).catch(() => null);
+    refreshWardrobe();
+    return;
+  }
   if (!binned) return;
   clearTimeout(binned.timer);
   const { print, index, live } = binned;
@@ -1052,7 +1063,7 @@ $('leave').addEventListener('click', () => {
 });
 addEventListener('orbit:wait', (e) => {
   lockTurn(Boolean(e.detail));
-  if (e.detail) wait(e.detail.seconds);
+  if (e.detail) wait(e.detail.seconds, e.detail.steps);
   else stopWaiting();
 });
 /** The person rises out of the mannequin from the stand up, taking its place line by line. */
