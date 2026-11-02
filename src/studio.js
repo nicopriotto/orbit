@@ -359,6 +359,11 @@ async function askPin(words) {
 }
 
 said(GREETING);
+// On a phone the card stays folded to one line until it is touched.
+talk.ask.addEventListener('focus', () => stylist.toggleAttribute('data-open', true));
+stylist.querySelector('.stylist-face').addEventListener('click', () => {
+  if (matchMedia('(max-width: 600px)').matches) stylist.toggleAttribute('data-open');
+});
 talk.ask.addEventListener('input', syncTalk);
 talk.addEventListener('submit', (event) => {
   event.preventDefault();
@@ -384,7 +389,14 @@ function renderLook() {
   const { top, bottom, outer } = state;
   const names = [outer?.name, top?.name, bottom?.name].filter(Boolean);
   if (names.length) names.push(SNEAKERS.name);
-  $('pieces').textContent = names.length ? names.join(' · ') : 'Open the wardrobe to pick a piece';
+  // The pieces themselves, small, so the look reads at a glance; their names stay for anyone who can't see them.
+  const pieces = [outer, top, bottom].filter(Boolean);
+  if (pieces.length) pieces.push(SNEAKERS);
+  $('pieces').replaceChildren(...pieces.map((item) => Object.assign(new Image(), { src: item.image, alt: item.name, title: item.name, draggable: false })));
+  if (!pieces.length) $('pieces').textContent = 'Open the wardrobe to pick a piece';
+  $('tag-label').textContent = pieces.length ? `The look · ${pieces.length - 1} ${pieces.length === 2 ? 'piece' : 'pieces'}` : 'The look';
+  $('tag').toggleAttribute('data-empty', !pieces.length);
+  if (motion && pieces.length && $('tag').isConnected) $('tag').animate([0, -4, 2.5, -1.2, 0].map((degrees) => ({ rotate: `${degrees}deg` })), { duration: 1000, easing: 'ease-out', composite: 'add' });
   $('total').textContent = names.length ? money((top?.price ?? 0) + (bottom?.price ?? 0) + (outer?.price ?? 0)) : '';
   $('try').disabled = !names.length;
   $('try').classList.toggle('primary', Boolean(names.length));
@@ -1359,6 +1371,8 @@ fetch('api/looks').then((response) => response.json()).then((list) => {
   label();
 });
 
+// The look's price tag hangs from the figure's hand, so it lives inside the figure.
+$('figure').append($('tag'));
 setPlace(PLACES[0]);
 wearLook(FIRST_LOOK);
 renderLook();
