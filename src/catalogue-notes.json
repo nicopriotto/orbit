@@ -1,0 +1,182 @@
+{
+  "tee": {
+    "colour": "cream",
+    "material": "cotton",
+    "description": "Classic crew-neck tee with short sleeves and relaxed fit."
+  },
+  "tee-breton": {
+    "colour": "white navy",
+    "material": "cotton jersey",
+    "description": "Classic crew-neck tee in cream with thin navy horizontal stripes."
+  },
+  "tee-rust": {
+    "colour": "burnt orange",
+    "material": "cotton",
+    "description": "Classic crew-neck tee in washed rust with short sleeves."
+  },
+  "tee-ink": {
+    "colour": "black",
+    "material": "cotton",
+    "description": "Classic short-sleeve tee with ribbed crew neckline and relaxed fit."
+  },
+  "tee-sage": {
+    "colour": "sage green",
+    "material": "cotton",
+    "description": "Relaxed sage crew-neck tee with short sleeves and soft finish."
+  },
+  "tee-navy": {
+    "colour": "navy",
+    "material": "cotton",
+    "description": "Classic short-sleeve crewneck tee with chest pocket in soft washed finish."
+  },
+  "shirt-white": {
+    "colour": "white",
+    "material": "cotton",
+    "description": "Crisp long-sleeve button-down with pointed collar and curved hem."
+  },
+  "oxford": {
+    "colour": "light blue",
+    "material": "cotton",
+    "description": "Classic long-sleeve button-up with pointed collar and curved hem."
+  },
+  "shirt-flannel": {
+    "colour": "navy grey",
+    "material": "cotton flannel",
+    "description": "Long-sleeve button-up shirt in navy and grey check with curved hem."
+  },
+  "shirt-chambray": {
+    "colour": "medium blue",
+    "material": "chambray",
+    "description": "Long-sleeve button-front shirt with collar and dual chest flap pockets."
+  },
+  "shirt-stripe": {
+    "colour": "Blue striped",
+    "material": "Cotton",
+    "description": "Long-sleeve button-up shirt with fine vertical stripes and classic collar."
+  },
+  "shirt-pink": {
+    "colour": "pale pink",
+    "material": "cotton poplin",
+    "description": "Classic long-sleeve button-up with pointed collar and curved hem."
+  },
+  "jacket": {
+    "colour": "olive green",
+    "material": "cotton twill",
+    "description": "Military-inspired jacket with four flap pockets and button-front closure."
+  },
+  "jacket-denim": {
+    "colour": "Medium blue",
+    "material": "Denim",
+    "description": "Long-sleeve denim jacket with pointed collar and four flap pockets."
+  },
+  "jacket-bomber": {
+    "colour": "black",
+    "material": "nylon",
+    "description": "Classic bomber with front zip, ribbed trims, and diamond-quilted back panel."
+  },
+  "jacket-camel": {
+    "colour": "camel",
+    "material": "wool",
+    "description": "Single-breasted coat with notch lapels and four flap pockets."
+  },
+  "jacket-leather": {
+    "colour": "black",
+    "material": "leather",
+    "description": "Black leather jacket with button front and four flap pockets."
+  },
+  "jacket-navy": {
+    "colour": "navy blue",
+    "material": "wool blend",
+    "description": "Double-breasted peacoat with wide lapels, flap pockets, and buttoned cuffs."
+  },
+  "dress": {
+    "colour": "terracotta",
+    "material": "linen",
+    "description": "Short-sleeve fit-and-flare dress with round neckline and textured finish."
+  },
+  "dress-navy": {
+    "colour": "navy blue",
+    "material": "linen",
+    "description": "Short-sleeve collared midi dress with full button front and flared skirt."
+  },
+  "dress-black": {
+    "colour": "black",
+    "material": "linen",
+    "description": "Sleeveless black dress with round neckline and flared midi skirt."
+  },
+  "dress-sage": {
+    "colour": "sage green",
+    "material": "linen",
+    "description": "Short-sleeve fit-and-flare midi with round neckline and flared skirt."
+  },
+  "dress-cream": {
+    "colour": "ivory",
+    "material": "silk",
+    "description": "Elegant slip dress with V-neckline, thin straps, and fluid midi silhouette."
+  },
+  "dress-red": {
+    "colour": "crimson red",
+    "material": "textured crepe",
+    "description": "Short-sleeve wrap dress with V-neckline and waist tie."
+  },
+  "jeans": {
+    "colour": "dark indigo",
+    "material": "cotton denim",
+    "description": "Straight-leg jeans in dark rinse with whiskering and cuffed selvedge hems."
+  },
+  "jeans-black": {
+    "colour": "washed black",
+    "material": "denim",
+    "description": "Straight-leg black jeans with faded whiskering and classic five-pocket styling."
+  },
+  "jeans-light": {
+    "colour": "light blue",
+    "material": "cotton denim",
+    "description": "Classic five-pocket jeans in faded wash with straight leg and button fly."
+  },
+  "jeans-ecru": {
+    "colour": "ecru",
+    "material": "cotton denim",
+    "description": "Slim straight-leg five-pocket jeans with button fly and cuffed hems."
+  },
+  "jeans-grey": {
+    "colour": "washed grey",
+    "material": "denim",
+    "description": "Straight-leg grey jeans with faded whiskering and classic five-pocket styling."
+  },
+  "jeans-white": {
+    "colour": "white",
+    "material": "cotton denim",
+    "description": "Straight-leg white jeans with copper rivets and cuffed selvedge hems."
+  },
+  "pants-olive": {
+    "colour": "olive green",
+    "material": "cotton",
+    "description": "Slim-fit cargo trousers with side flap pockets and tapered legs."
+  },
+  "pants-charcoal": {
+    "colour": "charcoal grey",
+    "material": "wool blend",
+    "description": "Slim-fit charcoal trousers with front crease and welt back pockets."
+  },
+  "chinos": {
+    "colour": "beige",
+    "material": "cotton twill",
+    "description": "Slim-leg chinos with front zip, side pockets and rear welt pockets in soft cotton."
+  },
+  "pants-cream": {
+    "colour": "ivory",
+    "material": "cotton twill",
+    "description": "Wide-leg trousers with front pleats, waistband loops, and rear patch pockets."
+  },
+  "pants-rust": {
+    "colour": "rust brown",
+    "material": "corduroy",
+    "description": "Slim-fit rust trousers in soft corduroy with tapered legs."
+  },
+  "pants-navy": {
+    "colour": "navy blue",
+    "material": "wool",
+    "description": "Tailored navy trousers with double pleats, tapered leg and turned-up cuffs."
+  }
+}
