@@ -537,6 +537,50 @@ function step(direction) {
   syncPrint();
 }
 
+/* Dragging the figure turns it, with a little momentum, and it settles on the nearest view when let go. */
+const DEGREES_PER_PX = 0.55;
+let dragging = null;
+let dragSpin = 0;
+
+function nearestStop(target) {
+  const stops = wearer ? [0, 180] : STOPS.slice(0, -1).map((stop) => stop.at);
+  const turns = Math.floor(target / 360) * 360;
+  const options = stops.flatMap((at) => [turns + at - 360, turns + at, turns + at + 360]);
+  return options.reduce((best, at) => (Math.abs(at - target) < Math.abs(best - target) ? at : best));
+}
+
+$('grab').addEventListener('pointerdown', (event) => {
+  if ($('turn-left').disabled || event.button > 0) return;
+  dragging = { id: event.pointerId, x: event.clientX, from: tween ? tween.to : angle, moved: false, speed: 0, at: performance.now(), last: event.clientX };
+  tween = null;
+  $('grab').setPointerCapture(event.pointerId);
+});
+$('grab').addEventListener('pointermove', (event) => {
+  if (dragging?.id !== event.pointerId) return;
+  const dx = event.clientX - dragging.x;
+  if (!dragging.moved && Math.abs(dx) < 4) return;
+  dragging.moved = true;
+  document.body.toggleAttribute('data-dragging', true);
+  const now = performance.now();
+  dragging.speed = (-(event.clientX - dragging.last) * DEGREES_PER_PX) / Math.max(now - dragging.at, 1) * 1000;
+  dragging.at = now;
+  dragging.last = event.clientX;
+  angle = dragging.from - dx * DEGREES_PER_PX;
+  dragSpin = Math.min(Math.abs(dragging.speed) / 900, 0.8);
+});
+function letGo(event) {
+  if (dragging?.id !== event.pointerId) return;
+  const { moved, speed } = dragging;
+  dragging = null;
+  document.body.removeAttribute('data-dragging');
+  if (!moved) return;
+  // A flick carries on a little way before it settles.
+  turnTo(nearestStop(angle + Math.max(Math.min(speed * 0.18, 120), -120)));
+  syncPrint();
+}
+$('grab').addEventListener('pointerup', letGo);
+$('grab').addEventListener('pointercancel', letGo);
+
 $('turn-left').addEventListener('click', () => step(1));
 $('turn-right').addEventListener('click', () => step(-1));
 addEventListener('keydown', (e) => {
@@ -761,7 +805,8 @@ function frame(now) {
     bend = Math.sin(Math.PI * t) * tween.reach;
     if (t === 1) tween = null;
   }
-  lean(dt, bend);
+  dragSpin *= Math.exp(-dt * 6);
+  lean(dt, Math.max(bend, dragSpin));
   draw();
   requestAnimationFrame(frame);
 }
