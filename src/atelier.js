@@ -193,3 +193,81 @@ async function read() {
   }
 }
 
+async function hang() {
+  if (!form.reportValidity()) return;
+  go.disabled = true;
+  go.textContent = 'Hanging…';
+  const data = Object.fromEntries(new FormData(form));
+  try {
+    const response = await fetch('api/catalog', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, draft }),
+    });
+    const item = await response.json();
+    if (!response.ok) throw new Error(item.error);
+    phase = 'done';
+    step('hang', 'done');
+    say(`${item.name} is in the wardrobe.`);
+    setTimeout(() => {
+      dialog.close();
+      window.dispatchEvent(new CustomEvent('orbit:catalog', { detail: { added: item } }));
+      reset();
+    }, motion ? 650 : 0);
+  } catch (error) {
+    go.disabled = false;
+    go.textContent = 'Hang it in the wardrobe';
+    $('atelier-error').textContent = error.message || 'Something went wrong. Try again in a moment.';
+    $('atelier-error').hidden = false;
+  }
+}
+
+function reset() {
+  run += 1;
+  phase = 'photos';
+  draft = null;
+  delete photos.front;
+  delete photos.back;
+  form.reset();
+  form.hidden = true;
+  $('atelier-error').hidden = true;
+  $('atelier-again').hidden = true;
+  for (const shot of Object.values(shots)) {
+    for (const name of ['data-filled', 'data-reading', 'data-scanning', 'data-traced', 'data-cut']) shot.removeAttribute(name);
+    for (const image of shot.querySelectorAll('img')) {
+      image.hidden = image.classList.contains('shot-photo');
+      image.removeAttribute('src');
+    }
+    shot.querySelector('.shot-cut').hidden = false;
+    shot.querySelector('input').value = '';
+    shot.querySelector('.shot-line path').removeAttribute('d');
+  }
+  for (const name of ['photos', 'spark', 'sam', 'hang']) step(name, name === 'photos' ? 'active' : null);
+  go.textContent = 'Read the garment';
+  go.disabled = true;
+  say(INTRO);
+}
+
+go.addEventListener('click', () => {
+  if (phase === 'photos') read();
+  else if (phase === 'hanging') hang();
+  else if (phase === 'failed') {
+    for (const name of ['spark', 'sam', 'hang']) step(name, null);
+    for (const shot of Object.values(shots)) for (const name of ['data-traced', 'data-cut']) shot.removeAttribute(name);
+    form.hidden = true;
+    read();
+  }
+});
+$('atelier-again').addEventListener('click', reset);
+$('atelier-close').addEventListener('click', () => dialog.close());
+dialog.addEventListener('click', (event) => {
+  if (event.target === dialog) dialog.close();
+});
+dialog.addEventListener('close', () => {
+  if (phase === 'done' || phase === 'failed') reset();
+});
+$('add-garment').addEventListener('click', () => {
+  if (phase === 'done') reset();
+  dialog.showModal();
+});
+reset();
