@@ -316,10 +316,10 @@ $('store').addEventListener('click', (e) => {
   if (e.target === $('store')) $('store').close();
 });
 
-function wornRow({ name, file, price }, item) {
+function wornRow({ name, image, price }, item) {
   const row = document.createElement('li');
   row.innerHTML = `
-    <img src="studio/set/item-${file}.webp" alt="" draggable="false" />
+    <img src="${image}" alt="" draggable="false" />
     <b>${name}</b>
     <i>${price ? money(price) : 'Included'}</i>`;
   if (item) {
@@ -458,14 +458,19 @@ function createSpot(item) {
     <button type="button" class="piece" aria-pressed="false" aria-label="${item.name}, ${money(item.price)}">
       <svg class="hanger" aria-hidden="true"><use href="#${item.slot === 'bottom' ? 'clips' : 'hook'}" /></svg>
       <span class="flip">
-        <img src="studio/set/item-${item.file}.webp" alt="" draggable="false" />
-        <img class="reverse" src="studio/set/item-${item.file}-back.webp" alt="" draggable="false" />
+        <img src="${item.image}" alt="" draggable="false" />
+        <img class="reverse" src="${item.back}" alt="" draggable="false" />
       </span>
       <b>${item.name}</b>
       <i>${money(item.price)}</i>
       <em></em>
     </button>
     <button type="button" class="round turn-over" aria-label="Turn over ${item.name}" aria-pressed="false">${TURN_OVER}</button>`;
+  if (item.store) {
+    // A store's own garment says so, and the store can take it out; the base catalogue stays as it is.
+    spot.insertAdjacentHTML('beforeend', `<span class="store-tag">New</span><button type="button" class="round take-out" aria-label="Take ${item.name} out of the wardrobe">${BIN}</button>`);
+    spot.querySelector('.take-out').addEventListener('click', () => takeOut(item));
+  }
   const button = spot.querySelector('.piece');
   const over = spot.querySelector('.turn-over');
   button.addEventListener('click', () => {
