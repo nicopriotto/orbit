@@ -83,6 +83,7 @@ function underJacket() {
 }
 
 function toggle(item) {
+  stylistSays('');
   remember();
   leaveWearer();
   if (worn(item)) state[item.slot] = null;
@@ -252,6 +253,7 @@ const covered = ({ top, bottom }) => top?.whole || (bottom && top);
 
 /** Surprise deals only from whole outfits already saved, so it never spends anything or leaves the figure half dressed. */
 function surprise() {
+  stylistSays('');
   remember();
   leaveWearer();
   const options = Object.keys(saved).filter((look) => look.startsWith(MAN) === Boolean(figure) && covered(LOOKS.get(plainLook(look)) ?? {}) && saved[look].length === VIEWS.length && look !== chosen());
@@ -265,6 +267,67 @@ function surprise() {
   renderLook();
   dress();
 }
+
+/* The stylist: a few words in, one outfit from the catalogue out, chosen by Muse Spark, with the room and the reason */
+
+const stylist = $('stylist');
+let asking = 0;
+if (matchMedia('(max-width: 600px)').matches) stylist.ask.placeholder = 'Ask the stylist: a dinner outdoors…';
+
+function stylistSays(text, mood) {
+  const note = $('stylist-note');
+  note.hidden = !text;
+  note.toggleAttribute('data-waiting', mood === 'waiting');
+  note.toggleAttribute('data-failed', mood === 'failed');
+  if ($('stylist-text').textContent === text) return;
+  $('stylist-text').textContent = text;
+  if (text && motion) note.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: 280, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+}
+
+function syncStylist() {
+  $('stylist-go').disabled = stylist.ask.value.trim().length < 2 || stylist.hasAttribute('data-thinking');
+}
+
+stylist.ask.addEventListener('input', syncStylist);
+stylist.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const words = stylist.ask.value.trim();
+  if (words.length < 2 || stylist.hasAttribute('data-thinking')) return;
+  const ticket = ++asking;
+  stylist.toggleAttribute('data-thinking', true);
+  stylist.ask.disabled = true;
+  syncStylist();
+  stylistSays('is going through the wardrobe…', 'waiting');
+  try {
+    const response = await fetch('api/stylist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ask: words, figure, look: chosen() }),
+    });
+    const answer = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(answer.error);
+    if (ticket !== asking) return;
+    stylistSays(answer.note);
+    stylist.ask.value = '';
+    if (answer.look !== chosen() || wearer) {
+      remember();
+      leaveWearer();
+      wearLook(answer.look);
+      renderLook();
+      dress();
+    }
+    const place = PLACES.find((entry) => entry.id === answer.place);
+    if (place && place !== room) setPlace(place);
+  } catch (error) {
+    if (ticket === asking) stylistSays(error.message || 'The stylist is busy. Try again in a moment.', 'failed');
+  } finally {
+    if (ticket === asking) {
+      stylist.removeAttribute('data-thinking');
+      stylist.ask.disabled = false;
+      syncStylist();
+    }
+  }
+});
 
 function wearLook(look) {
   figure = look.startsWith(MAN) ? MAN : '';
