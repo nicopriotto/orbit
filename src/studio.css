@@ -1160,10 +1160,11 @@ dialog.snap-view {
 
 /* The brand's store, not the fitting room: its own paper, ink and buttons, inside a small browser window. */
 dialog.store {
-  width: min(480px, calc(100vw - 32px));
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
   padding: 0;
   overflow: hidden auto;
-  background: #fbf8f2;
+  background: #fff;
   color: #2c2118;
   box-shadow: 0 24px 60px rgb(18 12 8 / 0.55);
 }
@@ -1193,95 +1194,6 @@ dialog.store {
   font: 500 12px/1.2 var(--sans);
 }
 
-.store-page {
-  padding: 18px 24px 24px;
-}
-
-.store-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgb(44 33 24 / 0.14);
-}
-
-.store-head p {
-  margin: 0;
-}
-
-.store .store-brand {
-  color: #2c2118;
-  font: 600 13px/1 var(--sans);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.store .store-demo {
-  padding: 4px 9px 5px;
-  border-radius: 999px;
-  background: rgb(44 33 24 / 0.08);
-  color: rgb(44 33 24 / 0.72);
-  font: 500 12px/1 var(--sans);
-}
-
-.store-demo[hidden] {
-  display: none;
-}
-
-.store h2 {
-  margin-top: 18px;
-}
-
-.store .store-lead {
-  margin: 4px 0 10px;
-  color: rgb(44 33 24 / 0.72);
-}
-
-.store .store-list {
-  padding: 0;
-}
-
-.store .store-list li {
-  grid-template-columns: 46px 1fr auto;
-  margin-top: 0;
-  border-bottom-color: rgb(44 33 24 / 0.12);
-}
-
-.store .store-list i {
-  color: #2c2118;
-}
-
-.store-sum {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-top: 14px;
-  font: 500 15px/1 var(--sans);
-}
-
-.store-sum b {
-  font: 600 22px/1 var(--sans);
-  font-variant-numeric: tabular-nums;
-}
-
-.store .store-note {
-  margin: 6px 0 0;
-  color: rgb(44 33 24 / 0.62);
-  font-size: 13px;
-}
-
-.store .pill {
-  background: none;
-  color: #2c2118;
-  box-shadow: inset 0 0 0 1px rgb(44 33 24 / 0.3);
-  backdrop-filter: none;
-}
-
-.store .pill.primary {
-  background: #2c2118;
-  color: var(--paper);
-  box-shadow: none;
-}
 
 /* Back and forward keep to the corner, clear of the main button. */
 .steps {
