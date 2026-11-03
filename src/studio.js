@@ -395,7 +395,7 @@ function renderLook() {
   if (pieces.length) pieces.push(shoes);
   $('pieces').replaceChildren(...pieces.map((item) => Object.assign(new Image(), { src: item.image, alt: item.name, title: item.name, draggable: false })));
   if (!pieces.length) $('pieces').textContent = 'Open the wardrobe to pick a piece';
-  $('tag-label').textContent = pieces.length ? `The look · ${pieces.length - 1} ${pieces.length === 2 ? 'piece' : 'pieces'}` : 'The look';
+  $('tag-label').textContent = pieces.length ? `The look · ${pieces.length} pieces` : 'The look';
   $('tag').toggleAttribute('data-empty', !pieces.length);
   if (motion && pieces.length && $('tag').isConnected) $('tag').animate([0, -4, 2.5, -1.2, 0].map((degrees) => ({ rotate: `${degrees}deg` })), { duration: 1000, easing: 'ease-out', composite: 'add' });
   $('total').textContent = names.length ? money((top?.price ?? 0) + (bottom?.price ?? 0) + (outer?.price ?? 0) + shoes.price) : '';
