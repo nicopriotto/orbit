@@ -2257,6 +2257,25 @@ dialog .error {
   margin-top: 8px;
 }
 
+/* Shoes do not hang: they stand on a shelf in place of the rail, at the height of the hook they do not need. */
+.spot[data-slot='shoes'] .hanger {
+  visibility: hidden;
+}
+
+.section[data-kind='shoes'] .rail-bar {
+  top: calc(31px + var(--shoes) * 2.1px);
+  height: 6px;
+  border-radius: 2px;
+}
+
+.section[data-kind='shoes'] {
+  --shoes: 40;
+}
+
+.spot[data-slot='shoes'] .piece .flip img {
+  object-position: 50% 100%;
+}
+
 .piece .flip {
   position: relative;
   z-index: 1;
