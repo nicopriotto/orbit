@@ -1,100 +1,81 @@
+<p align="center">
+  <img src="docs/images/hero.jpg" alt="Orbit: dress the mannequin, then see it on you." width="100%" />
+</p>
+
+<p align="center">
+  <a href="https://github.com/nicopriotto/orbit/actions/workflows/ci.yml"><img src="https://github.com/nicopriotto/orbit/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
+  <a href="https://github.com/nicopriotto/orbit/actions/workflows/security.yml"><img src="https://github.com/nicopriotto/orbit/actions/workflows/security.yml/badge.svg" alt="Security" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-8a6a3c.svg" alt="License: MIT" /></a>
+  <img src="https://img.shields.io/badge/Meta-Muse%20Image%20·%20Muse%20Spark%20·%20SAM%203.1-1c2b4a.svg" alt="Built on Meta's models" />
+</p>
+
 # Orbit
 
-[![CI](https://github.com/nicopriotto/orbit/actions/workflows/ci.yml/badge.svg)](https://github.com/nicopriotto/orbit/actions/workflows/ci.yml) [![Security](https://github.com/nicopriotto/orbit/actions/workflows/security.yml/badge.svg)](https://github.com/nicopriotto/orbit/actions/workflows/security.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-brown.svg)](LICENSE)
+**A fitting room for online fashion stores.** Shoppers dress a mannequin from the store's own catalogue, turn it, walk it through a few rooms, and then see the same outfit on their own body from a single photo. When they like it, the whole look goes to the store's cart.
 
-A virtual fitting room for fashion brands. A brand adds a garment from two photos; a shopper dresses a faceless mannequin from the catalogue, turns it, walks it through five places, and then sees the same outfit on their own body from one photo.
+Online fashion loses a lot of sales because people can't tell how clothes will look on them. Orbit shows them before they buy, and the brand needs nothing more than two photos of each garment.
 
-Built for the Meta Global AI Developer Hackathon. Everything in this repository was made during the event.
+<p align="center"><img src="docs/images/studio.jpg" alt="The Orbit studio: a dressed figure on a brass stand in a fitting room, with the wardrobe and the Polaroid of the try-on." width="100%" /></p>
 
-## Run
+## Dress it, turn it, take it anywhere
 
-Requires Node 20.19 or newer.
+Pick any pieces from the rail and Muse Image dresses the mannequin in one sheet with four views. The figure turns by hand, and each new combination is paid for once and then served to every shopper for free.
+
+<p align="center"><img src="docs/images/four-views.jpg" alt="The same look from the front, three-quarter, side and back." width="100%" /></p>
+
+The same look in five rooms: the fitting room, a boutique, a tailor's atelier, a courtyard and a penthouse at blue hour.
+
+<p align="center"><img src="docs/images/rooms.jpg" alt="The mannequin in five different rooms." width="100%" /></p>
+
+## Then see it on you
+
+Upload one photo. Muse Image draws you in the outfit on a green screen, front and back. SAM 3.1 finds the person, and the browser cuts them out and puts them on the stand, in the room, where the mannequin was. A Polaroid of the result is drawn in the browser, so the photo never goes back to a server.
+
+<p align="center"><img src="docs/images/try-on.jpg" alt="Muse's green-screen image, the cut-out person, and the person on the stand in the fitting room." width="100%" /></p>
+
+No photo at hand? Try it on Mia or Theo. Everyone below was made with Muse Image; no real person's photo is in this repository.
+
+<p align="center"><img src="docs/images/people.jpg" alt="Seven generated people, each wearing a different look from the catalogue." width="100%" /></p>
+
+## Pin, the stylist
+
+Tell Pin where you're going and it puts the look together from the catalogue, picks the room and says why. Or dress the mannequin yourself and ask Pin what it thinks. Muse Spark speaks for Pin, held by a strict JSON schema to the catalogue's real ids, so it can only pick what the store sells.
+
+<p align="center"><img src="docs/images/pin.jpg" alt="Pin dresses the mannequin in a cream slip dress and a navy coat for dinner on a chilly evening." width="100%" /></p>
+
+## A new garment, without a photoshoot
+
+The brand adds a garment from two phone photos, front and back, on any background. Muse Spark reads it and fills in the catalogue entry, SAM 3.1 cuts it out, and Muse Image redraws it as a catalogue photo in the house style. Then it's on the rail, ready to dress the mannequin.
+
+<p align="center"><img src="docs/images/add-garment.jpg" alt="Add a garment: two photos of a corduroy jacket, and the entry Muse Spark filled in." width="80%" /></p>
+
+## Built on Meta's models
+
+| Model | What it does in Orbit |
+| --- | --- |
+| **Muse Image** `muse-image-1.0` | Dresses the mannequin in four views, puts the shopper in the outfit front and back, redraws a brand's garment as a catalogue photo, and made every garment, room and sample person. |
+| **Muse Spark** `muse-spark-1.3` | Reads a new garment into the catalogue, and speaks for Pin. |
+| **SAM 3.1** `sam-3.1` | Cuts the brand's garment out of its photo, and finds the shopper in Muse's image. |
+
+Every billed call is logged with its cost, and each endpoint is capped per day and per visitor. Read [docs/HOW-IT-WORKS.md](docs/HOW-IT-WORKS.md) for the details.
+
+## Try it
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:5192
 ```
 
-Opens on http://localhost:5192. Every look already in `cache/looks` and `public/studio/set` plays without a key.
+Without a key, everything already saved plays: 60 garments, the saved looks, and Mia and Theo in several outfits. To dress new combinations or try a look on your own photo, `cp .env.example .env.local` and set `META_API_KEY`. Docker works too: `docker build -t orbit . && docker run -p 5192:5192 --env-file .env.local orbit`.
 
-To add a garment, dress a new combination or try a look on a photo, add a Meta Model API key:
+`npm run check` runs lint, unit tests and the build; `npm run test:e2e` walks the studio in Chromium on desktop and phone, blocking every request that would bill Muse. CI runs both on every push, along with a gitleaks secret scan, CodeQL and `npm audit`. A `v*` tag publishes a Docker image to GHCR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
-```bash
-cp .env.example .env.local   # then set META_API_KEY
-```
+## Honest notes
 
-Or run it in Docker:
-
-```bash
-docker build -t orbit .
-docker run -p 5192:5192 --env-file .env.local orbit
-```
-
-## Development
-
-```bash
-npm run lint       # ESLint
-npm test           # unit tests (node:test)
-npm run test:e2e   # the studio in Chromium, desktop and phone (Playwright)
-npm run check      # lint, unit tests and build together
-```
-
-The end-to-end tests block every request that would bill Muse, and fail if one is attempted, so they run free in CI.
-
-GitHub Actions runs on every push and pull request:
-
-- **CI:** lint, unit tests, build, end-to-end tests with the Playwright report kept as an artifact, and a Docker build.
-- **Security:** a gitleaks scan of the whole history, CodeQL, and `npm audit`; Dependabot keeps npm packages and actions current.
-- **Release:** a `v*` tag publishes the image to GitHub Container Registry (`ghcr.io/nicopriotto/orbit`) and opens a GitHub release.
-
-## How Meta's models are used
-
-Three Meta models run in the product, all through the Meta Model API with one key: `muse-image-1.0` makes every image, `muse-spark-1.3` reads garments, and `sam-3.1` cuts garments and people out. Every call is logged with its cost (`node scripts/muse.mjs usage`).
-
-### A brand adds a garment
-
-`Add a garment`, in the wardrobe, takes a photo of the front and one of the back, on any background. The page shows each model at work, step by step:
-
-1. **Muse Spark** (`muse-spark-1.3`, Responses API with a strict JSON schema) looks at both photos and returns a catalogue entry: kind, name, colour, material, a one-line description, and a short phrase that names the garment for SAM. It also says when the photos are not one garment.
-2. **SAM 3.1** (`sam-3.1`, Responses API) is given that phrase and each photo, and returns the garment's mask. The page traces SAM's outline around the garment, then the background falls away and the cut garment lifts.
-3. The brand checks the details, sets the price, and hangs it. **Muse Image** redraws the cut garment as a catalogue photograph in the house style, front and then back, keeping its colour, fabric and details, so it hangs on the rail like every other piece and dresses the mannequin from a clean reference (`server/garment.mjs` cuts it from the green). It appears first on its rail, marked `New`, and from then on Muse dresses the mannequin in it like any other garment. If Muse cannot redraw it, the cut-out is used.
-
-`server/catalog.mjs` streams each step as it finishes and keeps the brand's garments in `cache/catalog`. The 60 garments of the base catalogue cannot be removed; a brand's own garments can be taken out, with a moment to undo, and are only marked as removed, never deleted. Garment reads are capped per day and per visitor (`CATALOG_DAILY_LIMIT`, `CATALOG_VISITOR_LIMIT`).
-
-### Pin, the stylist
-
-Pin lives at the head of the wardrobe: a tailor's dress form with a pincushion for a hat, drawn once with Muse Image (`public/studio/stylist/pin.webp`), a short conversation and a line to write on. **Muse Spark** speaks for Pin. Ask for a look ("a wedding in the country, by day") and Pin dresses the mannequin, picks the room and says why; ask what it thinks of what you put together and it judges whether the pieces go (layering, colour, formality, season), names the piece that is wrong and puts the fix on. Pin answers in the shopper's language and follows the thread of the conversation.
-
-Spark is given the whole wardrobe in words: each brand garment as Spark read it when it was added, and the 60 base garments as Spark read them once from their pictures (`scripts/catalogue-base.mjs`, kept in `src/catalogue-notes.json`). Its answer is held by a strict JSON schema to the catalogue's ids, so it can only pick what exists, and it is told which outfits are already photographed so it leans on those, which show at once and cost nothing. `server/stylist.mjs`; capped by `STYLIST_DAILY_LIMIT` and `STYLIST_VISITOR_LIMIT`. Each answer costs well under a cent. The conversation stays in the page.
-
-### The catalogue
-
-60 garments in nine kinds: tees, shirts, knitwear, outerwear, dresses, denim, trousers, skirts and shoes, including pieces that are hard to draw and to cut out (embroidery, fringe, mohair, sequins, lace, patchwork). The catalogue is unisex: either mannequin wears any piece, and Pin is told so. Every look has shoes; the white leather sneakers are worn until another pair is picked, so a look id only names the shoes when they are not the sneakers (`-in-<shoes>`).
-
-### Muse Image
-
-- **While building:** the 60 garments, front and back, the five places, the stands and both mannequins. `scripts/build-man.mjs` cuts his views from his sheet, `scripts/generate-garments.mjs` and `scripts/generate-places.mjs` make them, and `scripts/build-studio.py` cuts them out of their green screens.
-- **Dressing the mannequin:** `server/looks.mjs` asks Muse for one sheet with four views of a combination, cuts it apart, and saves it. The shoes go in with the garments, front and back. Each combination is paid for once, per mannequin, and then served to everyone from disk. Twenty looks with the newer pieces were drawn ahead of time, ten on each mannequin (`scripts/seed-looks.mjs`); the rest are made the first time someone asks for them.
-- **Trying it on:** `server/try-on.mjs` makes two images of the shopper and streams each one as soon as Muse finishes it, front first, with the back made from that front. SAM 3.1 then finds the person in each image. `src/try-on.js` cuts them out in the browser so they stand on the same stand as the mannequin: SAM decides what is the person, so nothing green they wear is cut away and no patch of backdrop stays, and a chroma key draws the fine edge of hair and fingers.
-
-Without a photo, the shopper can try a look on Mia or Theo, two fictional people made with Muse Image (`public/studio/models`). What Muse makes of each model in a look is kept in `cache/samples` and served to everyone after, so each look on each model is paid for once.
-
-Once the shopper is on the stand, `src/print.js` draws them into the chosen room as an instant photo to download or share. It happens in the browser, so the picture never goes back to a server. Each try-on adds its photo to a pile beside the figure. The last 12 stay in that browser only (IndexedDB, `src/album.js`), where the shopper can open, download or delete them, turn each one between front and back, and put an earlier try-on back on the stand at no cost. A discreet button asks Muse for the current try-on again when it came out wrong, which costs two more images.
-
-The photo stays in memory for the length of the request and is never written to disk. Try-ons are capped per day and per visitor. Set `TRY_ON_DAILY_LIMIT` and `TRY_ON_VISITOR_LIMIT` to change the caps.
-
-## What it does not do
-
-The figure does not really rotate: it swaps between four views. A try-on shows front and back only. The base catalogue, prices and brand are invented, and there is no checkout. Adding garments has no sign-in: anyone with the link can add one, within the caps above: `Shop this look` opens a simulated store with the look in its cart. Set `VITE_STORE_URL` to a real cart address and its checkout button goes there with `?items=` and the ids of the pieces.
-
-## Layout
-
-- `index.html`, `src/`: the app. `src/wardrobe.js` holds the catalogue.
-- `server/`: the endpoints, mounted by `vite.config.js`. Muse Image goes through `server/muse.mjs`, SAM 3.1 and Muse Spark through `server/meta.mjs`; both log every billed call. With `META_MOCK=1`, SAM and Spark are simulated locally, to try the brand flow without spending.
-- `scripts/`: rebuild the assets. Needs Python 3.12 with `numpy`, `opencv-python-headless` and `pillow`.
-- `public/studio/`: garments, places, stands and looks.
-- `cache/looks/`: combinations Muse has already dressed. `cache/catalog/`: garments a brand added, created on first use.
+- The figure doesn't really rotate: it swaps between four views. A try-on shows front and back only.
+- The brand, the base catalogue and its prices are invented. `Shop this look` opens a simulated store; set `VITE_STORE_URL` to send the cart to a real one.
+- Built from scratch during the Meta AI Developer Hackathon.
 
 ## Third-party
 
-Fonts: Cormorant Garamond and Hanken Grotesk from Google Fonts. Libraries: Vite, sharp, and Meta's `@meta-sam/parser` (SAM License) to read SAM 3.1's masks. The demo video uses "Werq" by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 (creativecommons.org/licenses/by/4.0). No other third-party assets.
+Fonts: Cormorant Garamond and Hanken Grotesk (Google Fonts). Libraries: Vite, sharp, and Meta's `@meta-sam/parser` (SAM License). The demo video uses "Werq" by Kevin MacLeod (incompetech.com), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Code under the [MIT License](LICENSE).
