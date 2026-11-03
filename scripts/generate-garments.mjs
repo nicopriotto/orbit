@@ -1,5 +1,4 @@
-// Grows the catalogue: each new garment gets a front in the house style, then a matching back, and each place gets a
-// stand of its own. Finished files are skipped, so a rerun only pays for what is missing.
+// Grows the catalogue: each new garment gets a front in the house style, then a matching back. Finished files are skipped, so a rerun only pays for what is missing.
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { promisify } from 'node:util';
@@ -39,6 +38,35 @@ const GARMENTS = {
   'jeans-white': ['jeans', 'white straight-leg five-pocket jeans'],
   'pants-navy': ['chinos', 'navy pleated tailored wool trousers'],
   'pants-rust': ['chinos', 'rust brown corduroy straight-leg trousers'],
+  // The second round: knitwear, skirts and shoes, and pieces that are hard to draw and to cut out.
+  'knit-cable': ['shirt', 'a chunky cream cable-knit wool crew-neck sweater with long sleeves'],
+  'knit-fairisle': ['shirt', 'a navy wool crew-neck sweater with long sleeves and a multicoloured Fair Isle patterned yoke in red, cream, mustard and green'],
+  'knit-mohair': ['shirt', 'a fuzzy moss green mohair cardigan with long sleeves, buttoned, with a soft halo of fine fibres along every edge'],
+  'knit-roll': ['shirt', 'a fine black merino wool rollneck sweater with long sleeves'],
+  'sweat-floral': ['shirt', 'a heather grey cotton crew-neck sweatshirt with long sleeves and colourful hand-embroidered flowers across the chest and down one sleeve'],
+  hoodie: ['shirt', 'an oatmeal cotton pullover hoodie with long sleeves, a kangaroo pocket and drawstrings, hood down'],
+  'tee-tiedye': ['tee', 'a pastel pink, lilac and sky blue swirl tie-dye cotton crew-neck t-shirt'],
+  'shirt-camp': ['tee', 'a short-sleeve camp-collar button-up shirt in a bold green and cream palm leaf print'],
+  'blouse-lace': ['shirt', 'an ivory cotton lace blouse with long sleeves, scalloped edges and an openwork floral pattern'],
+  'jacket-puffer': ['jacket', 'a glossy black quilted puffer jacket worn open'],
+  'jacket-fringe': ['jacket', 'a tan suede western jacket with long fringe hanging from the chest yoke and along the sleeves, worn open'],
+  'jacket-patch': ['jacket', 'a light-wash denim trucker jacket worn open, covered in colourful embroidered patches of flowers, stars and a tiger'],
+  'blazer-tweed': ['jacket', 'a brown herringbone wool tweed blazer worn open'],
+  'jacket-varsity': ['jacket', 'a forest green wool varsity jacket with cream leather sleeves, striped ribbed cuffs and a cream chenille letter O on the chest, worn open'],
+  'dress-floral': ['dress', 'a flowing short-sleeve maxi dress in a dense multicoloured wildflower print'],
+  'dress-sequin': ['dress', 'a gold sequinned sleeveless slip midi dress that catches the light'],
+  'skirt-pleat': ['chinos', 'a camel pleated midi skirt'],
+  'skirt-denim': ['chinos', 'a mid-wash denim A-line midi skirt with front pockets'],
+  'skirt-satin': ['chinos', 'a black satin bias-cut midi slip skirt'],
+  'skirt-tartan': ['chinos', 'a red and green tartan wool knee-length wrap skirt with a leather buckle'],
+  'jeans-patch': ['jeans', 'patchwork straight-leg five-pocket jeans pieced from light, mid and dark denim squares'],
+  sneakers: ['sneakers', 'a pair of white leather sneakers'],
+  'boots-chelsea': ['sneakers', 'a pair of black leather Chelsea boots with elastic side panels'],
+  loafers: ['sneakers', 'a pair of brown suede penny loafers'],
+  hightops: ['sneakers', 'a pair of red canvas high-top sneakers with white laces and white soles'],
+  sandals: ['sneakers', 'a pair of tan leather flat sandals with crossed straps'],
+  'boots-western': ['sneakers', 'a pair of cream leather cowboy boots with colourful embroidered roses on the shafts'],
+  runners: ['sneakers', 'a pair of chunky grey and orange trail running sneakers'],
 };
 
 const tasks = [];
@@ -47,13 +75,17 @@ for (const [name, [base, description]] of Object.entries(GARMENTS)) {
   tasks.push({
     out: front,
     references: [`public/studio/raw/green/${base}.webp`],
-    prompt: `Same photograph style, framing, lighting and invisible-mannequin presentation as this image, but the garment is now ${description}. One garment only, fully in frame, photorealistic fabric, sharp edges. ${GREEN}`,
+    prompt: base === 'sneakers'
+      ? `Same photograph style, framing, angle and lighting as this image, but the shoes are now ${description}. One pair only, fully in frame, photorealistic materials, sharp edges. ${GREEN}`
+      : `Same photograph style, framing, lighting and invisible-mannequin presentation as this image, but the garment is now ${description}. One garment only, fully in frame, photorealistic fabric, sharp edges. ${GREEN}`,
   });
   tasks.push({
     out: `public/studio/back/${name}.webp`,
     references: [front],
     needs: front,
-    prompt: `The exact same garment from this image, seen from directly behind: same colour, fabric, size, proportions and stitching quality, same invisible-mannequin presentation, fully in frame. ${GREEN}`,
+    prompt: base === 'sneakers'
+      ? `The exact same pair of shoes from this image, seen from directly behind so the heels face the camera: same colour, materials, size and proportions, fully in frame. ${GREEN}`
+      : `The exact same garment from this image, seen from directly behind: same colour, fabric, size, proportions and stitching quality, same invisible-mannequin presentation, fully in frame. ${GREEN}`,
   });
 }
 
