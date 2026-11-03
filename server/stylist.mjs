@@ -37,17 +37,21 @@ function line(item) {
 
 const named = ({ top, bottom, outer, shoes }) => [outer && `${outer.name} (${outer.id}) worn open`, top && `${top.name} (${top.id})`, bottom && `${bottom.name} (${bottom.id})`, shoes && `${shoes.name} (${shoes.id})`].filter(Boolean).join(', ');
 
+/** Pieces cut for a woman's figure: Pin leaves them off the man's mannequin unless the shopper asks for them. */
+const cutForHer = (item) => Boolean(item) && (item.category === 'dresses' || item.category === 'skirts' || item.id === 'blouse-lace');
+
 /** Whole outfits already photographed on this mannequin: changing into one costs nothing, so the stylist leans on them. */
 function photographed(figure) {
   return Object.entries(saved())
     .filter(([id, views]) => views.length === 4 && id.startsWith(MAN) === Boolean(figure) && plainLook(id) !== 'bare')
     .map(([id]) => LOOKS.get(plainLook(id)))
-    .filter((look) => look && (look.top?.whole || (look.top && look.bottom)));
+    .filter((look) => look && (look.top?.whole || (look.top && look.bottom)))
+    .filter((look) => !figure || ![look.top, look.bottom, look.outer].some(cutForHer));
 }
 
 const RULES = `How garments go together, which you check whenever an outfit is on the table:
 - An outfit is a dress, or a top (tee, shirt or knit) with a bottom (denim, trousers or a skirt), and a pair of shoes. A jacket or coat over it is optional and is always worn open, so what is under it shows and has to work with it.
-- Anyone can wear anything here: either mannequin takes dresses, skirts and every other piece.
+- Dress each mannequin the way most people with that figure would dress for the occasion: on the man's, no dresses, skirts or pieces cut for a bust. Anyone may still ask for anything, and then you go along with it.
 - A dress takes no trousers or jeans under it. A dress can take a jacket or coat over it.
 - Layering only makes sense when the inner layer stays visible or adds something: a tee or shirt under an open jacket is fine. Something closed and covering, like a buttoned coat over a dress of the same length, hides what is under it.
 - Judge colour (tones that clash or that disappear into each other), formality (a tailored wool trouser with a heavyweight tee reads deliberate; a peacoat over a slip dress needs a reason) and season (linen and wool, light and heavy).
@@ -74,6 +78,7 @@ function prompt(figure, current, turns) {
     '',
     `Rooms: ${Object.entries(PLACES).map(([id, text]) => `${id} (${text})`).join('; ')}.`,
     '',
+    `The mannequin is ${figure ? 'the man\'s' : 'the woman\'s'}. Pieces cut for a woman's figure: ${WARDROBE.filter(cutForHer).map((item) => item.id).join(', ')}.`,
     `On the mannequin now: ${current ? named(current) : 'nothing yet'}.`,
     '',
     'The conversation so far:',
