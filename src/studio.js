@@ -1,6 +1,6 @@
 import { KEEP, dropPrint, keepPrint, loadPrints } from './album.js';
 import { APP_NAME, makePrint } from './print.js';
-import { KINDS, LOOKS, MAN, UNDER, WARDROBE, lookId, plainLook, setStoreItems } from './wardrobe.js';
+import { KINDS, LOOKS, MAN, SHOES, UNDER, WARDROBE, lookId, plainLook, setStoreItems } from './wardrobe.js';
 import './atelier.js';
 import NOTES from './catalogue-notes.json';
 
@@ -48,11 +48,10 @@ const BACK_WAIT = matchMedia('(max-width: 600px)').matches ? 'Making the back' :
 const BACK_FAILED = matchMedia('(max-width: 600px)').matches ? 'No back this time' : 'The back did not come through';
 
 const $ = (id) => document.getElementById(id);
-const state = { top: null, bottom: null, outer: null };
+const state = { top: null, bottom: null, outer: null, shoes: SHOES };
 const frames = [$('frame-a'), $('frame-b')];
 const motion = !matchMedia('(prefers-reduced-motion: reduce)').matches;
 const money = (value) => `$${value}`;
-const SNEAKERS = { name: 'White leather sneakers', file: 'sneakers', image: 'studio/set/item-sneakers.webp' };
 
 let wearer = null; // Set while the visitor's own images replace the mannequin: { look, front, back }.
 let shown = FIRST_LOOK; // The look on the mannequin, which trails the choice while Muse dresses it.
@@ -60,7 +59,7 @@ let dressing = 0; // Identifies the latest change of clothes, so an older answer
 let figure = ''; // Which mannequin: nothing for hers, MAN for his.
 let saved = { bare: VIEWS, [`${MAN}bare`]: VIEWS, [FIRST_LOOK]: VIEWS }; // Finished views per look, as listed by the server.
 
-const chosen = () => figure + lookId(state.top, state.bottom, state.outer);
+const chosen = () => figure + lookId(state.top, state.bottom, state.outer, state.shoes);
 const undressed = () => !state.top && !state.bottom && !state.outer;
 const worn = (item) => state[item.slot] === item;
 const picture = (look, view) => `api/looks/${look}-${view}.webp`;
@@ -86,7 +85,9 @@ function underJacket() {
 function toggle(item) {
   remember();
   leaveWearer();
-  if (worn(item)) state[item.slot] = null;
+  // There are always shoes on: taking a pair off puts the white sneakers back.
+  if (item.slot === 'shoes') state.shoes = worn(item) ? SHOES : item;
+  else if (worn(item)) state[item.slot] = null;
   else {
     state[item.slot] = item;
     if (item.whole) state.bottom = null;
