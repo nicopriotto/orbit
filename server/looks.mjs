@@ -32,6 +32,7 @@ const webp = (path) => ({ bytes: readFileSync(path), type: 'image/webp' });
 const finished = (id, view) => [`${BUILT}/${id}-${view}.webp`, `${FINISHED}/${id}-${view}.webp`].find(existsSync);
 const complete = (id) => VIEWS.every((view) => finished(id, view));
 const garments = ({ top, bottom, outer }) => [outer, top, bottom].filter(Boolean);
+const SHOE_NOTE = 'The shoes are the pair in the last two images, front and back, worn on both feet.';
 // A store's garments keep their green references next to their other files.
 const front = (item) => (item.store ? `cache/catalog/files/${item.id}-green.webp` : `public/studio/raw/green/${item.file}.webp`);
 const back = (item) => (item.store ? `cache/catalog/files/${item.id}-green-back.webp` : `public/studio/back/${item.file}.webp`);
@@ -46,8 +47,8 @@ function request(id) {
     !look.top?.whole && (!(look.top || look.outer) || !look.bottom) && 'Any part of the mannequin without a garment stays bare ivory fibreglass.',
   ].filter(Boolean).join(' ');
   return {
-    prompt: `The first image is a sheet with four views of the same display mannequin, side by side on green: front, three-quarter, side profile, and back. Dress the mannequin in all four views in the exact garments and white sneakers from the other images, ${FIT}. ${notes} The outfit must be identical in all four views, draped the same way. The back view shows the backs of the garments. Keep each mannequin's faceless head, pose, proportions, scale and position in the sheet exactly unchanged, four separate figures that do not overlap, each head to toe in frame. ${GREEN}`,
-    references: [id.startsWith(MAN) ? MAN_SHEET : SHEET, ...worn.flatMap((item) => [front(item), back(item)]), 'public/studio/raw/green/sneakers.webp'],
+    prompt: `The first image is a sheet with four views of the same display mannequin, side by side on green: front, three-quarter, side profile, and back. Dress the mannequin in all four views in the exact garments and shoes from the other images, ${FIT}. ${SHOE_NOTE} ${notes} The outfit must be identical in all four views, draped the same way. The back view shows the backs of the garments. Keep each mannequin's faceless head, pose, proportions, scale and position in the sheet exactly unchanged, four separate figures that do not overlap, each head to toe in frame. ${GREEN}`,
+    references: [id.startsWith(MAN) ? MAN_SHEET : SHEET, ...[...worn, look.shoes].flatMap((item) => [front(item), back(item)])],
   };
 }
 
@@ -57,7 +58,7 @@ const smooth = (low, high, x) => {
 };
 
 /** The darkest or brightest value within a square around each pixel: erosion or dilation, one axis at a time. */
-function neighbours(values, width, height, reach, pick) {
+export function neighbours(values, width, height, reach, pick) {
   const across = Buffer.from(values);
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -183,7 +184,7 @@ async function paint(id, visitor) {
   }
 }
 
-function make(id, visitor) {
+export function make(id, visitor) {
   if (complete(id)) return Promise.resolve();
   if (!running.has(id)) running.set(id, paint(id, visitor).finally(() => running.delete(id)));
   return running.get(id);
