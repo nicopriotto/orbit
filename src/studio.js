@@ -390,14 +390,7 @@ function renderLook() {
   const { top, bottom, outer, shoes } = state;
   const names = [outer?.name, top?.name, bottom?.name].filter(Boolean);
   if (names.length) names.push(shoes.name);
-  // The pieces themselves, small, so the look reads at a glance; their names stay for anyone who can't see them.
-  const pieces = [outer, top, bottom].filter(Boolean);
-  if (pieces.length) pieces.push(shoes);
-  $('pieces').replaceChildren(...pieces.map((item) => Object.assign(new Image(), { src: item.image, alt: item.name, title: item.name, draggable: false })));
-  if (!pieces.length) $('pieces').textContent = 'Open the wardrobe to pick a piece';
-  $('tag-label').textContent = pieces.length ? `The look · ${pieces.length} pieces` : 'The look';
-  $('tag').toggleAttribute('data-empty', !pieces.length);
-  if (motion && pieces.length && $('tag').isConnected) $('tag').animate([0, -4, 2.5, -1.2, 0].map((degrees) => ({ rotate: `${degrees}deg` })), { duration: 1000, easing: 'ease-out', composite: 'add' });
+  $('pieces').textContent = names.length ? names.join(' · ') : 'Open the wardrobe to pick a piece';
   $('total').textContent = names.length ? money((top?.price ?? 0) + (bottom?.price ?? 0) + (outer?.price ?? 0) + shoes.price) : '';
   $('try').disabled = !names.length;
   $('try').classList.toggle('primary', Boolean(names.length));
@@ -1372,8 +1365,6 @@ fetch('api/looks').then((response) => response.json()).then((list) => {
   label();
 });
 
-// The look's price tag hangs from the figure's hand, so it lives inside the figure.
-$('figure').append($('tag'));
 setPlace(PLACES[0]);
 wearLook(FIRST_LOOK);
 renderLook();
