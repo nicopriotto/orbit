@@ -178,5 +178,145 @@
     "colour": "navy blue",
     "material": "wool",
     "description": "Tailored navy trousers with double pleats, tapered leg and turned-up cuffs."
+  },
+  "knit-cable": {
+    "colour": "ivory",
+    "material": "wool",
+    "description": "Chunky cable-knit crewneck with ribbed trim for cozy texture."
+  },
+  "shirt-camp": {
+    "colour": "beige green",
+    "material": "cotton",
+    "description": "Short-sleeve button-up shirt with all-over tropical palm leaf print."
+  },
+  "tee-tiedye": {
+    "colour": "Pastel multicolor",
+    "material": "Cotton",
+    "description": "Short-sleeve crew-neck tee with pastel pink, purple and blue spiral tie-dye."
+  },
+  "blouse-lace": {
+    "colour": "cream",
+    "material": "lace",
+    "description": "Delicate floral lace shirt with pointed collar and scalloped hem."
+  },
+  "knit-roll": {
+    "colour": "Black",
+    "material": "Wool blend",
+    "description": "Soft brushed turtleneck sweater with ribbed collar, cuffs, and hem."
+  },
+  "knit-fairisle": {
+    "colour": "navy",
+    "material": "wool",
+    "description": "Navy crewneck sweater with festive red and cream Fair Isle yoke pattern."
+  },
+  "sweat-floral": {
+    "colour": "heather grey",
+    "material": "cotton blend",
+    "description": "Grey crewneck sweatshirt with pink floral embroidery across chest and sleeve."
+  },
+  "knit-mohair": {
+    "colour": "moss green",
+    "material": "mohair",
+    "description": "Soft fuzzy knit cardigan with polo collar and button front."
+  },
+  "jacket-puffer": {
+    "colour": "Black",
+    "material": "Nylon",
+    "description": "Diamond-quilted shirt jacket with four flap pockets and snap-button front."
+  },
+  "hoodie": {
+    "colour": "oatmeal",
+    "material": "cotton fleece",
+    "description": "Relaxed hooded sweatshirt with drawstrings and front kangaroo pocket."
+  },
+  "jacket-fringe": {
+    "colour": "tan",
+    "material": "suede",
+    "description": "Western-inspired suede jacket with chest and sleeve fringe and four-pocket detailing."
+  },
+  "jacket-patch": {
+    "colour": "Light Blue",
+    "material": "Denim",
+    "description": "Light-wash denim jacket adorned with colorful floral, star, and tiger patches."
+  },
+  "blazer-tweed": {
+    "colour": "Olive Brown",
+    "material": "Wool Tweed",
+    "description": "Tailored blazer with four flap pockets and herringbone weave."
+  },
+  "jacket-varsity": {
+    "colour": "green cream",
+    "material": "wool blend",
+    "description": "Classic varsity jacket with contrast sleeves, striped ribbing, and chenille letter patch."
+  },
+  "dress-sequin": {
+    "colour": "gold",
+    "material": "sequin",
+    "description": "Sleeveless gold midi with thin straps and flared skirt shimmering all over."
+  },
+  "dress-floral": {
+    "colour": "Multicolor",
+    "material": "Viscose",
+    "description": "Short-sleeve fit-and-flare midi dress with all-over ditsy floral print."
+  },
+  "jeans-patch": {
+    "colour": "Indigo Blue",
+    "material": "Denim",
+    "description": "Straight-leg jeans constructed from contrasting indigo patchwork panels with cuffed hems."
+  },
+  "skirt-pleat": {
+    "colour": "beige",
+    "material": "satin",
+    "description": "Elegant beige midi skirt with fine all-over pleats and flat waistband."
+  },
+  "skirt-denim": {
+    "colour": "washed blue",
+    "material": "denim",
+    "description": "A-line midi skirt in washed denim with five-pocket styling and front button closure."
+  },
+  "sneakers": {
+    "colour": "white",
+    "material": "leather",
+    "description": "Minimalist lace-up sneakers with smooth leather upper and white cup sole."
+  },
+  "skirt-satin": {
+    "colour": "black",
+    "material": "satin",
+    "description": "Fluid bias-cut midi skirt with smooth lustrous finish and clean waistband."
+  },
+  "skirt-tartan": {
+    "colour": "Red tartan",
+    "material": "Wool",
+    "description": "Red and green tartan wrap pencil skirt with side leather buckle closure."
+  },
+  "hightops": {
+    "colour": "Red",
+    "material": "Canvas",
+    "description": "Vibrant red high-tops with white laces, stitching, and rubber soles."
+  },
+  "loafers": {
+    "colour": "brown",
+    "material": "suede",
+    "description": "Classic penny loafers in soft brown suede with saddle detailing."
+  },
+  "sandals": {
+    "colour": "tan",
+    "material": "leather",
+    "description": "Flat slip-on sandals with crossed straps and stitched sole."
+  },
+  "boots-chelsea": {
+    "colour": "black",
+    "material": "leather",
+    "description": "Classic black leather Chelsea boots with elastic side panels and low heel."
+  },
+  "runners": {
+    "colour": "grey orange",
+    "material": "mesh",
+    "description": "Grey mesh sneakers with vibrant orange accents and rugged soles."
+  },
+  "boots-western": {
+    "colour": "cream",
+    "material": "leather",
+    "description": "Cream leather boots with colorful floral embroidery and block heel."
   }
 }
