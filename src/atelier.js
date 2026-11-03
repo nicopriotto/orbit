@@ -197,6 +197,7 @@ async function hang() {
   if (!form.reportValidity()) return;
   go.disabled = true;
   go.textContent = 'Hanging…';
+  say('Muse Image is making its catalogue photo, front and back.');
   const data = Object.fromEntries(new FormData(form));
   try {
     const response = await fetch('api/catalog', {
