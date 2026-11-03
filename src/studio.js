@@ -430,14 +430,14 @@ function bagItem(item, slot) {
   sizes[item.id] ??= options[Math.floor(options.length / 2)];
   const row = document.createElement('li');
   row.className = 'shop-item';
-  const low = slot !== 'shoes' && stock(item.id) !== 'In stock';
+  const low = stock(item.id) !== 'In stock';
   row.innerHTML = `
     <span class="shop-thumb"><img src="${item.image}" alt="" draggable="false" /></span>
     <div class="shop-info">
-      <p class="shop-name"><b>${item.name}</b><span>${item.price ? money(item.price) : 'Included'}</span></p>
-      <p class="shop-detail">${detail || (slot === 'shoes' ? 'White · Leather' : '')}</p>
+      <p class="shop-name"><b>${item.name}</b><span>${money(item.price)}</span></p>
+      <p class="shop-detail">${detail}</p>
       <div class="shop-sizes" role="radiogroup" aria-label="Size of ${item.name}"></div>
-      <p class="shop-stock"${low ? ' data-low' : ''}>${slot === 'shoes' ? 'Comes with the look' : stock(item.id)}</p>
+      <p class="shop-stock"${low ? ' data-low' : ''}>${stock(item.id)}</p>
     </div>`;
   const group = row.querySelector('.shop-sizes');
   for (const size of options) {
@@ -457,10 +457,10 @@ function bagItem(item, slot) {
 }
 
 function shop() {
-  const pieces = [['outer', state.outer], ['top', state.top], ['bottom', state.bottom]].filter(([, item]) => item);
+  const pieces = [['outer', state.outer], ['top', state.top], ['bottom', state.bottom], ['shoes', state.shoes]].filter(([, item]) => item);
   const subtotal = pieces.reduce((sum, [, item]) => sum + item.price, 0);
-  $('store-list').replaceChildren(...pieces.map(([slot, item]) => bagItem(item, slot)), bagItem({ ...SNEAKERS, id: 'sneakers', price: 0 }, 'shoes'));
-  $('store-count').textContent = `(${pieces.length + 1})`;
+  $('store-list').replaceChildren(...pieces.map(([slot, item]) => bagItem(item, slot)));
+  $('store-count').textContent = `(${pieces.length})`;
   $('store-subtotal').textContent = money(subtotal);
   $('store-shipping').textContent = subtotal >= FREE_SHIPPING ? 'Free' : money(12);
   $('store-total').textContent = money(subtotal + (subtotal >= FREE_SHIPPING ? 0 : 12));
