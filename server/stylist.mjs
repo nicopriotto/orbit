@@ -81,18 +81,19 @@ function prompt(figure, current, turns) {
   ].filter((part) => part !== '').join('\n');
 }
 
-function schema(figure) {
-  const ids = (slot) => [NONE, ...WARDROBE.filter((item) => item.slot === slot && !(figure && item.whole)).map((item) => item.id)];
+function schema() {
+  const ids = (slot) => [NONE, ...WARDROBE.filter((item) => item.slot === slot).map((item) => item.id)];
   return {
     type: 'object',
     additionalProperties: false,
-    required: ['reply', 'action', 'top', 'bottom', 'outer', 'place'],
+    required: ['reply', 'action', 'top', 'bottom', 'outer', 'shoes', 'place'],
     properties: {
       reply: { type: 'string' },
       action: { type: 'string', enum: ['dress', 'none'] },
       top: { type: 'string', enum: ids('top') },
       bottom: { type: 'string', enum: ids('bottom') },
       outer: { type: 'string', enum: ids('outer') },
+      shoes: { type: 'string', enum: ids('shoes') },
       place: { type: 'string', enum: [KEEP, ...Object.keys(PLACES)] },
     },
   };
@@ -102,7 +103,7 @@ function schema(figure) {
 async function mock(words, figure, current) {
   await new Promise((done) => setTimeout(done, 1400));
   if (/think|work|go together|look ok|opinion|how does/i.test(words)) {
-    return { reply: current ? 'The jacket earns its place over the tee, and the sand keeps it light. I would leave it exactly as it is.' : 'Put something on first and I will tell you straight.', action: 'none', top: NONE, bottom: NONE, outer: NONE, place: KEEP };
+    return { reply: current ? 'The jacket earns its place over the tee, and the sand keeps it light. I would leave it exactly as it is.' : 'Put something on first and I will tell you straight.', action: 'none', top: NONE, bottom: NONE, outer: NONE, shoes: NONE, place: KEEP };
   }
   const ready = photographed(figure);
   const pick = ready[[...words].reduce((sum, char) => sum + char.charCodeAt(0), 0) % ready.length];
@@ -112,6 +113,7 @@ async function mock(words, figure, current) {
     top: pick.top?.id ?? NONE,
     bottom: pick.bottom?.id ?? NONE,
     outer: pick.outer?.id ?? NONE,
+    shoes: pick.shoes?.id ?? NONE,
     place: /night|dinner|evening|date/i.test(words) ? 'penthouse' : /sun|park|lunch|weekend/i.test(words) ? 'courtyard' : KEEP,
   };
 }
@@ -140,7 +142,7 @@ export async function stylist(request, response) {
     if (blocked) return reply(429, { error: blocked });
     reserved = true;
     const current = LOOKS.get(plainLook(String(body.look ?? '')));
-    const answer = MOCK ? await mock(last.text, figure, current) : await ask(prompt(figure, current, turns), 'stylist', schema(figure), 'stylist');
+    const answer = MOCK ? await mock(last.text, figure, current) : await ask(prompt(figure, current, turns), 'stylist', schema(), 'stylist');
     const out = { reply: answer.reply.trim(), place: answer.place === KEEP ? null : answer.place, mock: MOCK };
     if (answer.action === 'dress') {
       let top = find(answer.top);
@@ -148,7 +150,7 @@ export async function stylist(request, response) {
       const outer = find(answer.outer);
       if (top?.whole) bottom = null;
       if (outer && !top) top = UNDER;
-      if (top && (top.whole || bottom)) out.look = figure + lookId(top, bottom, outer);
+      if (top && (top.whole || bottom)) out.look = figure + lookId(top, bottom, outer, find(answer.shoes) ?? SHOES);
     }
     return reply(200, out);
   } catch (error) {
