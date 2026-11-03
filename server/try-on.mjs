@@ -10,7 +10,7 @@ import { allowance, edit, readBody } from './muse.mjs';
 const MAX_BODY = 8 * 1024 * 1024;
 // Two fictional people made with Muse, for anyone who would rather not use a photo of their own. What Muse makes of them
 // in a look is kept and served to everyone after, so each look on each model is paid for once.
-const MODELS = { nora: 'public/studio/models/nora.webp', sam: 'public/studio/models/sam.webp' };
+const MODELS = { mia: 'public/studio/models/mia.webp', theo: 'public/studio/models/theo.webp' };
 const SAMPLES = 'cache/samples';
 mkdirSync(SAMPLES, { recursive: true });
 const running = new Map();
