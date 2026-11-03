@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.github
+.env*
+!.env.example
+tests
+playwright-report
+test-results
+.muse-usage.jsonl
+.*-counts.json
