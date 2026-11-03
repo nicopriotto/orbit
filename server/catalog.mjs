@@ -5,8 +5,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import sharp from 'sharp';
 import { KINDS, setStoreItems } from '../src/wardrobe.js';
+import { itemImage } from './garment.mjs';
 import { MOCK, catalogue, segment } from './meta.mjs';
-import { allowance, readBody } from './muse.mjs';
+import { allowance, edit, readBody } from './muse.mjs';
 
 const ROOT = 'cache/catalog';
 const FILES = `${ROOT}/files`;
@@ -105,16 +106,43 @@ async function read(request, response) {
   response.end();
 }
 
-/** The cut garment, trimmed to itself: the picture that hangs in the wardrobe, and the green reference Muse dresses from. */
-async function finish(folder, side, id) {
+/** The cut garment, trimmed to itself and centred on green: what Muse is shown of the store's photo. */
+async function onGreen(folder, side) {
   const trimmed = await sharp(readFileSync(`${folder}/${side}.png`)).trim({ threshold: 8 }).png().toBuffer();
-  const suffix = side === 'back' ? '-back' : '';
-  await sharp(trimmed).resize(640, 1200, { fit: 'inside', withoutEnlargement: true }).webp({ quality: 88, alphaQuality: 90 }).toFile(`${FILES}/item-${id}${suffix}.webp`);
   const garment = await sharp(trimmed).resize(1100, 1700, { fit: 'inside' }).png().toBuffer();
-  await sharp({ create: { width: 1280, height: 1920, channels: 3, background: GREEN } })
-    .composite([{ input: garment, gravity: 'center' }])
-    .webp({ quality: 92 })
-    .toFile(`${FILES}/${id}-green${suffix}.webp`);
+  return sharp({ create: { width: 1280, height: 1920, channels: 3, background: GREEN } }).composite([{ input: garment, gravity: 'center' }]).webp({ quality: 92 }).toBuffer();
+}
+
+// The base garment whose photograph sets the house style for each kind: framing, light and the invisible mannequin.
+const STYLE = { tops: 'tee', shirts: 'shirt', knits: 'shirt', outerwear: 'jacket', dresses: 'dress', denim: 'jeans', trousers: 'chinos', skirts: 'chinos', shoes: 'sneakers' };
+const CHROMA = 'Solid uniform chroma-key green background (#00B140), evenly lit, with no shadow, no floor line and no gradient.';
+const webp = (bytes) => ({ bytes, type: 'image/webp' });
+
+/**
+ * A store's photo is a phone picture: Muse Image redraws the garment as a catalogue photograph in the house style, front
+ * then back, so it hangs in the wardrobe like every other piece and dresses the mannequin from a clean reference. If
+ * Muse cannot, the cut-out itself is used.
+ */
+export async function finish(folder, id, kind, garment) {
+  const cut = { front: await onGreen(folder, 'front'), back: await onGreen(folder, 'back') };
+  let made = cut;
+  if (!MOCK) {
+    try {
+      const shoes = kind === 'shoes';
+      const style = readFileSync(`public/studio/raw/green/${STYLE[kind]}.webp`);
+      const what = `${garment.description || garment.name} (${[garment.colour, garment.material].filter(Boolean).join(', ')})`;
+      const front = await edit(`Same photograph style, framing, ${shoes ? 'angle' : 'invisible-mannequin presentation'} and lighting as the first image, but showing exactly the ${shoes ? 'shoes' : 'garment'} from the second image, a photo of the real thing: ${what}. Keep its colour, fabric, pattern, embroidery, hardware, details and proportions exactly; only the presentation changes. ${shoes ? 'One pair' : 'One garment'} only, fully in frame, photorealistic, sharp edges. ${CHROMA}`, [webp(style), webp(cut.front)], `catalog/${id}`);
+      const back = await edit(`The exact same ${shoes ? 'pair of shoes' : 'garment'} as the first image, seen from directly behind, as the second image shows its back: same colour, fabric, pattern, details, size and proportions, same presentation and framing, fully in frame. ${CHROMA}`, [webp(front), webp(cut.back)], `catalog/${id}-back`);
+      made = { front, back };
+    } catch (error) {
+      console.error('catalog photo failed, keeping the cut-out', error.status, error.message);
+    }
+  }
+  for (const side of ['front', 'back']) {
+    const suffix = side === 'back' ? '-back' : '';
+    writeFileSync(`${FILES}/${id}-green${suffix}.webp`, made[side]);
+    await itemImage(made[side], `${FILES}/item-${id}${suffix}.webp`);
+  }
 }
 
 async function publish(request, response) {
@@ -126,7 +154,8 @@ async function publish(request, response) {
   if (!body.draft || !existsSync(`${folder}/front.png`) || !existsSync(`${folder}/back.png`)) return reply(response, 400, { error: 'Read the garment first.' });
   if (!name || !kind || !(price >= 1 && price <= 100000)) return reply(response, 400, { error: 'Give it a name, a kind and a price.' });
   const id = newId();
-  await Promise.all(['front', 'back'].map((side) => finish(folder, side, id)));
+  const read = existsSync(`${folder}/garment.json`) ? JSON.parse(readFileSync(`${folder}/garment.json`, 'utf8')) : {};
+  await finish(folder, id, kind, { ...read, name, colour: body.colour ?? read.colour, material: body.material ?? read.material, description: body.description ?? read.description });
   const entry = {
     id,
     name,
