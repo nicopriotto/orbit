@@ -42,7 +42,7 @@ async function dress(photo, look, send) {
   const view = (name) => ({ bytes: readFileSync(savedLook(look).replace('-front.webp', `-${name}.webp`)), type: 'image/webp' });
   const { outer, top } = LOOKS.get(plainLook(look));
   const under = outer && !top ? 'Under the open jacket the person wears a plain white tee. ' : ''; // A mannequin can go without one; a shopper does not.
-  const front = await edit(`Show the person from the first image wearing exactly the outfit on the mannequin in the second image: same garments, colours, fabric and fit, including the white sneakers. ${under}Keep the person's face, skin, hair and body shape exactly. Standing relaxed, facing the camera, arms at the sides. ${GREEN}`, [photo, view('front')], 'try-on');
+  const front = await edit(`Show the person from the first image wearing exactly the outfit on the mannequin in the second image: same garments, colours, fabric and fit, including the shoes. ${under}Keep the person's face, skin, hair and body shape exactly. Standing relaxed, facing the camera, arms at the sides. ${GREEN}`, [photo, view('front')], 'try-on');
   // The back starts at once; SAM reads the front meanwhile, so the front is out about as soon as before.
   const backing = edit(`The first image shows a person. Show the same person, seen from directly behind, wearing the same outfit, matching the second image for the pose, garments and framing. Keep the person's hair and body shape exactly. ${GREEN}`, [{ bytes: front, type: 'image/webp' }, view('back')], 'try-on');
   backing.catch(() => {}); // Handled below; this only keeps an early failure from going unheard.
