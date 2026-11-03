@@ -1134,7 +1134,15 @@ function showPrint(id, side = 'front') {
     if (print.back) $('snap-full-back').src = urlOf(print, 'back');
     turnCard(openedSide, false);
     if (open && motion) $('snap-card').animate([{ opacity: 0, scale: 0.985 }, { opacity: 1, scale: 1 }], { duration: 220, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
-  } else if (before.side !== openedSide) turnCard(openedSide, true);
+  } else {
+    if (before.side !== openedSide) turnCard(openedSide, true);
+    // The same photo taken again in another room: it keeps its place, with the new pictures on both faces.
+    if ($('snap-full').getAttribute('src') !== urlOf(print)) {
+      $('snap-full').src = urlOf(print);
+      if (print.back) $('snap-full-back').src = urlOf(print, 'back');
+      if (motion) $('snap-card').animate([{ opacity: 0.35 }, { opacity: 1 }], { duration: 240, easing: 'cubic-bezier(0.23, 1, 0.32, 1)' });
+    }
+  }
   $('snap-save').href = url;
   $('snap-save').download = file.name;
   $('snap-share').hidden = !navigator.canShare?.({ files: [file] });
