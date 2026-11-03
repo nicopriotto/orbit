@@ -477,7 +477,7 @@ function shop() {
 /** Without a store behind it, the demo says what would happen rather than open a page that isn't there. */
 function checkout() {
   if (!STORE) return showStorePane(true);
-  const items = [state.outer, state.top, state.bottom].filter(Boolean).map((item) => item.id);
+  const items = [state.outer, state.top, state.bottom, state.shoes].filter(Boolean).map((item) => item.id);
   open(`${STORE}?items=${items.join(',')}`, '_blank', 'noopener');
 }
 
@@ -510,11 +510,11 @@ function wornRow({ name, image, price }, item) {
   return row;
 }
 
-/** Everything on the figure, the pieces that come with the look included. */
+/** Everything on the figure, shoes included. The default sneakers cannot come off, since a look always has shoes. */
 function lookRows(removable) {
-  const { top, bottom, outer } = state;
+  const { top, bottom, outer, shoes } = state;
   const pieces = [outer, top, bottom].filter(Boolean).map((item) => wornRow(item, removable && item));
-  if (pieces.length) pieces.push(wornRow(SNEAKERS));
+  if (pieces.length) pieces.push(wornRow(shoes, removable && shoes !== SHOES && shoes));
   return pieces;
 }
 
@@ -785,7 +785,7 @@ async function refreshWardrobe(added) {
   setStoreItems(entries);
   const same = (item) => (item ? WARDROBE.find((entry) => entry.id === item.id) ?? null : null);
   const before = chosen();
-  Object.assign(state, { top: same(state.top), bottom: same(state.bottom), outer: same(state.outer) });
+  Object.assign(state, { top: same(state.top), bottom: same(state.bottom), outer: same(state.outer), shoes: same(state.shoes) ?? SHOES });
   spots.length = 0;
   $('sections').replaceChildren(...KINDS.map(createSection));
   requestAnimationFrame(fitAll);
