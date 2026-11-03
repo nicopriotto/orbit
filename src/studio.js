@@ -287,8 +287,8 @@ function said(text, { you, quiet, look } = {}) {
   if (look) {
     const row = document.createElement('span');
     row.className = 'said-look';
-    const { top, bottom, outer } = LOOKS.get(plainLook(look)) ?? {};
-    for (const item of [outer, top, bottom, SNEAKERS].filter(Boolean)) {
+    const { top, bottom, outer, shoes } = LOOKS.get(plainLook(look)) ?? {};
+    for (const item of [outer, top, bottom, shoes].filter(Boolean)) {
       const image = document.createElement('img');
       image.src = item.image;
       image.alt = item.name;
@@ -382,23 +382,23 @@ $('stylist-call').addEventListener('click', () => {
 
 function wearLook(look) {
   figure = look.startsWith(MAN) ? MAN : '';
-  const { top = null, bottom = null, outer = null } = LOOKS.get(plainLook(look)) ?? {};
-  Object.assign(state, { top, bottom, outer });
+  const { top = null, bottom = null, outer = null, shoes = SHOES } = LOOKS.get(plainLook(look)) ?? {};
+  Object.assign(state, { top, bottom, outer, shoes });
 }
 
 function renderLook() {
-  const { top, bottom, outer } = state;
+  const { top, bottom, outer, shoes } = state;
   const names = [outer?.name, top?.name, bottom?.name].filter(Boolean);
-  if (names.length) names.push(SNEAKERS.name);
+  if (names.length) names.push(shoes.name);
   // The pieces themselves, small, so the look reads at a glance; their names stay for anyone who can't see them.
   const pieces = [outer, top, bottom].filter(Boolean);
-  if (pieces.length) pieces.push(SNEAKERS);
+  if (pieces.length) pieces.push(shoes);
   $('pieces').replaceChildren(...pieces.map((item) => Object.assign(new Image(), { src: item.image, alt: item.name, title: item.name, draggable: false })));
   if (!pieces.length) $('pieces').textContent = 'Open the wardrobe to pick a piece';
   $('tag-label').textContent = pieces.length ? `The look · ${pieces.length - 1} ${pieces.length === 2 ? 'piece' : 'pieces'}` : 'The look';
   $('tag').toggleAttribute('data-empty', !pieces.length);
   if (motion && pieces.length && $('tag').isConnected) $('tag').animate([0, -4, 2.5, -1.2, 0].map((degrees) => ({ rotate: `${degrees}deg` })), { duration: 1000, easing: 'ease-out', composite: 'add' });
-  $('total').textContent = names.length ? money((top?.price ?? 0) + (bottom?.price ?? 0) + (outer?.price ?? 0)) : '';
+  $('total').textContent = names.length ? money((top?.price ?? 0) + (bottom?.price ?? 0) + (outer?.price ?? 0) + shoes.price) : '';
   $('try').disabled = !names.length;
   $('try').classList.toggle('primary', Boolean(names.length));
   $('look-toggle').disabled = !names.length;
