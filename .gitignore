@@ -10,3 +10,6 @@ cache/catalog
 .catalog-counts.json
 cache/looks/*shop-*
 .stylist-counts.json
+playwright-report
+test-results
+!.env.example
