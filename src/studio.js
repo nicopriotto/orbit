@@ -390,7 +390,10 @@ function renderLook() {
   const { top, bottom, outer, shoes } = state;
   const names = [outer?.name, top?.name, bottom?.name].filter(Boolean);
   if (names.length) names.push(shoes.name);
-  $('pieces').textContent = names.length ? names.join(' · ') : 'Open the wardrobe to pick a piece';
+  // The pieces themselves, as small squares, so the look reads at a glance; their names stay for anyone who can't see them.
+  const pieces = names.length ? [outer, top, bottom, shoes].filter(Boolean) : [];
+  $('pieces').replaceChildren(...pieces.map((item) => Object.assign(new Image(), { src: item.image, alt: item.name, title: item.name, draggable: false })));
+  if (!pieces.length) $('pieces').textContent = 'Open the wardrobe to pick a piece';
   $('total').textContent = names.length ? money((top?.price ?? 0) + (bottom?.price ?? 0) + (outer?.price ?? 0) + shoes.price) : '';
   $('try').disabled = !names.length;
   $('try').classList.toggle('primary', Boolean(names.length));
