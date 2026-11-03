@@ -1,5 +1,7 @@
 # Orbit
 
+[![CI](https://github.com/nicopriotto/orbit/actions/workflows/ci.yml/badge.svg)](https://github.com/nicopriotto/orbit/actions/workflows/ci.yml) [![Security](https://github.com/nicopriotto/orbit/actions/workflows/security.yml/badge.svg)](https://github.com/nicopriotto/orbit/actions/workflows/security.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-brown.svg)](LICENSE)
+
 A virtual fitting room for fashion brands. A brand adds a garment from two photos; a shopper dresses a faceless mannequin from the catalogue, turns it, walks it through five places, and then sees the same outfit on their own body from one photo.
 
 Built for the Meta Global AI Developer Hackathon. Everything in this repository was made during the event.
@@ -18,8 +20,32 @@ Opens on http://localhost:5192. Every look already in `cache/looks` and `public/
 To add a garment, dress a new combination or try a look on a photo, add a Meta Model API key:
 
 ```bash
-echo "META_API_KEY=your-key" > .env.local
+cp .env.example .env.local   # then set META_API_KEY
 ```
+
+Or run it in Docker:
+
+```bash
+docker build -t orbit .
+docker run -p 5192:5192 --env-file .env.local orbit
+```
+
+## Development
+
+```bash
+npm run lint       # ESLint
+npm test           # unit tests (node:test)
+npm run test:e2e   # the studio in Chromium, desktop and phone (Playwright)
+npm run check      # lint, unit tests and build together
+```
+
+The end-to-end tests block every request that would bill Muse, and fail if one is attempted, so they run free in CI.
+
+GitHub Actions runs on every push and pull request:
+
+- **CI:** lint, unit tests, build, end-to-end tests with the Playwright report kept as an artifact, and a Docker build.
+- **Security:** a gitleaks scan of the whole history, CodeQL, and `npm audit`; Dependabot keeps npm packages and actions current.
+- **Release:** a `v*` tag publishes the image to GitHub Container Registry (`ghcr.io/nicopriotto/orbit`) and opens a GitHub release.
 
 ## How Meta's models are used
 
