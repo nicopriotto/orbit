@@ -3,19 +3,25 @@
 export const KINDS = [
   { id: 'tops', label: 'Tees', slot: 'top', length: 70 },
   { id: 'shirts', label: 'Shirts', slot: 'top', length: 75 },
+  { id: 'knits', label: 'Knitwear', slot: 'top', length: 70 },
   { id: 'outerwear', label: 'Outerwear', slot: 'outer', length: 72.5 },
   { id: 'dresses', label: 'Dresses', slot: 'top', length: 111, whole: true },
   { id: 'denim', label: 'Denim', slot: 'bottom', length: 104 },
   { id: 'trousers', label: 'Trousers', slot: 'bottom', length: 104 },
+  { id: 'skirts', label: 'Skirts', slot: 'bottom', length: 78 },
+  { id: 'shoes', label: 'Shoes', slot: 'shoes', length: 40 },
 ];
 
 const PIECES = {
-  tops: [['tee', 'Bone cotton tee', 38], ['tee-ink', 'Ink heavyweight tee', 42], ['tee-breton', 'Breton stripe tee', 48], ['tee-rust', 'Rust garment-dyed tee', 44], ['tee-sage', 'Sage slub tee', 46], ['tee-navy', 'Navy pocket tee', 44]],
-  shirts: [['oxford', 'Pale blue oxford', 78, 'shirt'], ['shirt-white', 'White linen shirt', 88], ['shirt-flannel', 'Grey check flannel', 84], ['shirt-stripe', 'Bengal stripe shirt', 82], ['shirt-chambray', 'Chambray work shirt', 92], ['shirt-pink', 'Pale pink oxford', 80]],
-  outerwear: [['jacket', 'Olive field jacket', 164], ['jacket-denim', 'Mid-wash trucker jacket', 138], ['jacket-bomber', 'Black nylon bomber', 152], ['jacket-camel', 'Camel wool coat', 228], ['jacket-leather', 'Black leather biker', 298], ['jacket-navy', 'Navy wool pea coat', 248]],
-  dresses: [['dress', 'Terracotta linen dress', 142], ['dress-black', 'Black crepe midi', 158], ['dress-navy', 'Navy shirt dress', 136], ['dress-sage', 'Sage linen midi', 148], ['dress-red', 'Crimson wrap dress', 164], ['dress-cream', 'Cream slip dress', 152]],
-  denim: [['jeans', 'Indigo selvedge jeans', 118], ['jeans-black', 'Black straight jeans', 112], ['jeans-light', 'Light wash jeans', 108], ['jeans-ecru', 'Ecru undyed jeans', 114], ['jeans-grey', 'Washed grey jeans', 116], ['jeans-white', 'White straight jeans', 112]],
-  trousers: [['chinos', 'Sand chinos', 96], ['pants-charcoal', 'Charcoal wool trouser', 136], ['pants-olive', 'Olive cargo pant', 104], ['pants-cream', 'Cream pleated trouser', 124], ['pants-navy', 'Navy pleated trouser', 128], ['pants-rust', 'Rust corduroy trouser', 118]],
+  tops: [['tee', 'Bone cotton tee', 38], ['tee-ink', 'Ink heavyweight tee', 42], ['tee-breton', 'Breton stripe tee', 48], ['tee-rust', 'Rust garment-dyed tee', 44], ['tee-sage', 'Sage slub tee', 46], ['tee-tiedye', 'Pastel tie-dye tee', 52]],
+  shirts: [['oxford', 'Pale blue oxford', 78, 'shirt'], ['shirt-white', 'White linen shirt', 88], ['shirt-flannel', 'Grey check flannel', 84], ['shirt-stripe', 'Bengal stripe shirt', 82], ['shirt-pink', 'Pale pink oxford', 80], ['shirt-camp', 'Palm print camp shirt', 96], ['blouse-lace', 'Ivory lace blouse', 132]],
+  knits: [['knit-cable', 'Cream cable-knit sweater', 168], ['knit-fairisle', 'Fair Isle yoke sweater', 186], ['knit-mohair', 'Moss mohair cardigan', 174], ['knit-roll', 'Black merino rollneck', 142], ['sweat-floral', 'Embroidered flower sweatshirt', 128], ['hoodie', 'Oatmeal hoodie', 98]],
+  outerwear: [['jacket', 'Olive field jacket', 164], ['jacket-denim', 'Mid-wash trucker jacket', 138], ['jacket-bomber', 'Black nylon bomber', 152], ['jacket-camel', 'Camel wool coat', 228], ['jacket-leather', 'Black leather biker', 298], ['jacket-navy', 'Navy wool pea coat', 248], ['jacket-puffer', 'Black quilted puffer', 220], ['jacket-fringe', 'Tan suede fringe jacket', 320], ['jacket-patch', 'Embroidered patch denim jacket', 196], ['blazer-tweed', 'Herringbone tweed blazer', 268], ['jacket-varsity', 'Varsity jacket', 230]],
+  dresses: [['dress', 'Terracotta linen dress', 142], ['dress-black', 'Black crepe midi', 158], ['dress-navy', 'Navy shirt dress', 136], ['dress-sage', 'Sage linen midi', 148], ['dress-red', 'Crimson wrap dress', 164], ['dress-cream', 'Cream slip dress', 152], ['dress-floral', 'Wildflower maxi dress', 176], ['dress-sequin', 'Gold sequin slip dress', 238]],
+  denim: [['jeans', 'Indigo selvedge jeans', 118], ['jeans-black', 'Black straight jeans', 112], ['jeans-light', 'Light wash jeans', 108], ['jeans-ecru', 'Ecru undyed jeans', 114], ['jeans-grey', 'Washed grey jeans', 116], ['jeans-patch', 'Patchwork jeans', 168]],
+  trousers: [['chinos', 'Sand chinos', 96], ['pants-charcoal', 'Charcoal wool trouser', 136], ['pants-olive', 'Olive cargo pant', 104], ['pants-cream', 'Cream pleated trouser', 124], ['pants-rust', 'Rust corduroy trouser', 118]],
+  skirts: [['skirt-pleat', 'Camel pleated midi skirt', 118], ['skirt-denim', 'Denim midi skirt', 92], ['skirt-satin', 'Black satin skirt', 124], ['skirt-tartan', 'Tartan wrap skirt', 136]],
+  shoes: [['sneakers', 'White leather sneakers', 110], ['boots-chelsea', 'Black Chelsea boots', 210], ['loafers', 'Brown suede loafers', 186], ['hightops', 'Red canvas high-tops', 78], ['sandals', 'Tan strap sandals', 120], ['boots-western', 'Embroidered western boots', 290], ['runners', 'Chunky trail runners', 150]],
 };
 
 const BASE = KINDS.flatMap((kind) => PIECES[kind.id].map(([id, name, price, file]) => ({
