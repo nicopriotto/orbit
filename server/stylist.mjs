@@ -3,7 +3,7 @@
 // far. It answers in a sentence or two and, when it suggests an outfit, names it by the catalogue's ids, so it can only
 // pick what exists. It also judges what the shopper put together: whether the pieces go, and what to swap if not.
 import { existsSync, readFileSync } from 'node:fs';
-import { KINDS, LOOKS, MAN, UNDER, WARDROBE, lookId, plainLook } from '../src/wardrobe.js';
+import { KINDS, LOOKS, MAN, SHOES, UNDER, WARDROBE, lookId, plainLook } from '../src/wardrobe.js';
 import { MOCK, ask } from './meta.mjs';
 import { allowance, readBody } from './muse.mjs';
 import { saved } from './looks.mjs';
@@ -35,7 +35,7 @@ function line(item) {
   return `${item.id} | ${kindOf(item)} | ${item.name} | $${item.price}${item.store ? ' | new in' : ''}${words ? ` | ${words}` : ''}`;
 }
 
-const named = ({ top, bottom, outer }) => [outer && `${outer.name} (${outer.id}) worn open`, top && `${top.name} (${top.id})`, bottom && `${bottom.name} (${bottom.id})`].filter(Boolean).join(', ');
+const named = ({ top, bottom, outer, shoes }) => [outer && `${outer.name} (${outer.id}) worn open`, top && `${top.name} (${top.id})`, bottom && `${bottom.name} (${bottom.id})`, shoes && `${shoes.name} (${shoes.id})`].filter(Boolean).join(', ');
 
 /** Whole outfits already photographed on this mannequin: changing into one costs nothing, so the stylist leans on them. */
 function photographed(figure) {
@@ -46,23 +46,23 @@ function photographed(figure) {
 }
 
 const RULES = `How garments go together, which you check whenever an outfit is on the table:
-- An outfit is a dress, or a top (tee or shirt) with a bottom (denim or trousers). A jacket or coat over it is optional and is always worn open, so what is under it shows and has to work with it.
+- An outfit is a dress, or a top (tee, shirt or knit) with a bottom (denim, trousers or a skirt), and a pair of shoes. A jacket or coat over it is optional and is always worn open, so what is under it shows and has to work with it.
+- Anyone can wear anything here: either mannequin takes dresses, skirts and every other piece.
 - A dress takes no trousers or jeans under it. A dress can take a jacket or coat over it.
 - Layering only makes sense when the inner layer stays visible or adds something: a tee or shirt under an open jacket is fine. Something closed and covering, like a buttoned coat over a dress of the same length, hides what is under it.
 - Judge colour (tones that clash or that disappear into each other), formality (a tailored wool trouser with a heavyweight tee reads deliberate; a peacoat over a slip dress needs a reason) and season (linen and wool, light and heavy).
-- White leather sneakers always come with the look; they go with everything here.`;
+- Shoes finish the look: pick them for the occasion and the season. The white leather sneakers are the easy default.`;
 
 function prompt(figure, current, turns) {
   const ready = photographed(figure);
   return [
     'You are Pin, the in-store stylist of a premium clothing brand: a tailor\'s dress form with a pincushion for a hat and a measuring tape for a scarf, who has dressed more mannequins than anyone. You may joke about pins, seams or being a dress form, rarely and lightly. You speak to the shopper in the wardrobe of its virtual fitting room, where a mannequin wears what is chosen. Warm, precise, a little dry; never gushing. Answer in the language the shopper writes in.',
-    `The mannequin is the ${figure ? 'man' : 'woman'}'s.${figure ? ' The man does not wear dresses.' : ''}`,
     '',
     RULES,
     '',
     'Each answer:',
     '- reply: one to three short sentences, under 45 words. No greeting after the first turn, no exclamation marks, no lists, never prices or ids.',
-    '- If they ask for something to wear, or a look would answer them better than words, choose one complete outfit from the catalogue: action "dress", with top, bottom and outer (or "none"), and a room, and say in reply why it works for them.',
+    '- If they ask for something to wear, or a look would answer them better than words, choose one complete outfit from the catalogue: action "dress", with top, bottom and outer (or "none"), shoes, and a room, and say in reply why it works for them.',
     '- If they ask what you think of what is on, say honestly whether the pieces go together and why, using the rules. If one piece is wrong, say which and what you would put instead, and dress the mannequin in that fix with action "dress".',
     '- Otherwise, or if you need to ask something first, action "none".',
     '- place: the room that suits the outfit, or "keep" to leave it.',
