@@ -44,15 +44,23 @@ export const WARDROBE = [];
 // Three layers: one thing on the torso, a jacket over it, and something on the legs. A jacket is worn open, so with
 // nothing chosen under it, it goes over the plain tee.
 export const UNDER = BASE[0];
+// Every look has shoes. The white sneakers are what it wears unless another pair is chosen, so the looks made before
+// there were shoes to choose keep their ids.
+export const SHOES = BASE.find((item) => item.id === 'sneakers');
 
-export function lookId(top, bottom, outer) {
+function clothes(top, bottom, outer) {
   const base = top || bottom ? `${top?.id ?? 'none'}-${bottom?.id ?? 'none'}` : 'bare';
   if (!outer) return base;
   if (top === UNDER) return `${outer.id}-${bottom?.id ?? 'none'}`;
   return top ? `${outer.id}-over-${base}` : `${outer.id}-open-${bottom?.id ?? 'none'}`;
 }
 
-// The man's looks are the same catalogue under their own ids, drawn on his own mannequin.
+export function lookId(top, bottom, outer, shoes) {
+  const id = clothes(top, bottom, outer);
+  return id === 'bare' || !shoes || shoes === SHOES ? id : `${id}-in-${shoes.id}`;
+}
+
+// The same catalogue goes on either mannequin; his looks have their own ids because they are drawn on his figure.
 export const MAN = 'man-';
 export const plainLook = (id) => (id.startsWith(MAN) ? id.slice(MAN.length) : id);
 
@@ -92,8 +100,11 @@ export function setStoreItems(entries) {
   for (const outer of [null, ...pick('outer')]) {
     for (const top of [null, ...pick('top')]) {
       for (const bottom of top?.whole ? [null] : [null, ...pick('bottom')]) {
-        const id = lookId(top, bottom, outer);
-        if ((top || bottom || outer) && !LOOKS.has(id)) LOOKS.set(id, { top, bottom, outer });
+        if (!(top || bottom || outer)) continue;
+        for (const shoes of pick('shoes')) {
+          const id = lookId(top, bottom, outer, shoes);
+          if (!LOOKS.has(id)) LOOKS.set(id, { top, bottom, outer, shoes });
+        }
       }
     }
   }
