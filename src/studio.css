@@ -3960,47 +3960,121 @@ body:not([data-intro]) .intro {
   }
 }
 
-/* Each room says its name under it: the chosen one always, the others when pointed at. */
-@media (min-width: 981px) {
-  .places .place {
-    position: relative;
-    overflow: visible;
+/* On a computer the whole bag fits in one screen, four pieces and all, with nothing to scroll. */
+@media (min-width: 701px) {
+  .shop-top {
+    padding: 10px 24px;
   }
 
-  /* The button no longer clips, so the picture keeps the circle itself. */
-  .places .place img {
-    border-radius: 50%;
+  .shop-page {
+    gap: 28px;
+    padding: 16px 24px;
   }
 
-  .places .place::after {
-    content: attr(aria-label);
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 50%;
-    padding: 5px 10px;
-    border-radius: 999px;
-    background: var(--glass);
-    box-shadow: var(--glass-edge);
-    -webkit-backdrop-filter: var(--glass-blur);
-    backdrop-filter: var(--glass-blur);
-    color: var(--paper);
-    font: 500 11.5px/1 var(--sans);
-    white-space: nowrap;
-    opacity: 0;
-    translate: -50% -4px;
-    transition: opacity 180ms ease, translate 220ms var(--ease-out);
-    pointer-events: none;
+  .shop-look {
+    position: static;
   }
 
-  .places .place[aria-pressed='true']::after {
-    opacity: 1;
-    translate: -50% 0;
+  .shop-look img {
+    max-height: calc(100dvh - 32px - 160px);
   }
 
-  @media (hover: hover) and (pointer: fine) {
-    .places .place:hover::after {
-      opacity: 1;
-      translate: -50% 0;
-    }
+  .shop-free {
+    margin-top: 8px;
+    padding: 9px 12px;
+  }
+
+  .store .shop-free p {
+    margin-bottom: 6px;
+    font-size: 12px;
+  }
+
+  .shop-items {
+    margin-top: 4px;
+  }
+
+  .shop-item {
+    grid-template-columns: 60px minmax(0, 1fr);
+    gap: 14px;
+    padding: 6px 0;
+  }
+
+  .shop-thumb {
+    height: 72px;
+  }
+
+  .shop-thumb img {
+    width: 50px;
+    height: 62px;
+  }
+
+  /* The stock sits beside the sizes, so each piece takes three lines. */
+  .shop-info {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 10px;
+  }
+
+  .store .shop-name,
+  .store .shop-detail {
+    grid-column: 1 / -1;
+  }
+
+  .store .shop-detail {
+    margin-top: 1px;
+  }
+
+  .shop-sizes {
+    gap: 5px;
+    margin-top: 7px;
+  }
+
+  .shop-sizes button {
+    min-width: 34px;
+    height: 26px;
+  }
+
+  .store .shop-stock {
+    margin-top: 7px;
+  }
+
+  .shop-sum {
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .shop-sum .shop-total {
+    margin-top: 4px;
+    padding-top: 10px;
+  }
+
+  /* Checkout and back to trying on, side by side. */
+  .shop-bag {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 8px;
+    align-content: start;
+  }
+
+  .shop-bag > * {
+    grid-column: 1 / -1;
+  }
+
+  .shop-bag > .shop-pay,
+  .shop-bag > .shop-more {
+    grid-column: auto;
+    min-height: 46px;
+    margin-top: 14px;
+  }
+
+  .shop-promise {
+    margin-top: 12px;
+  }
+}
+
+@media (min-width: 701px) and (max-height: 800px) {
+  .shop-promise {
+    display: none;
   }
 }
