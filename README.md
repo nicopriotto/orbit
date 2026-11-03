@@ -71,4 +71,4 @@ The figure does not really rotate: it swaps between four views. A try-on shows f
 
 ## Third-party
 
-Fonts: Cormorant Garamond and Hanken Grotesk from Google Fonts. Libraries: Vite, sharp, and Meta's `@meta-sam/parser` (SAM License) to read SAM 3.1's masks. No other third-party assets.
+Fonts: Cormorant Garamond and Hanken Grotesk from Google Fonts. Libraries: Vite, sharp, and Meta's `@meta-sam/parser` (SAM License) to read SAM 3.1's masks. The demo video uses "Werq" by Kevin MacLeod (incompetech.com), licensed under Creative Commons: By Attribution 4.0 (creativecommons.org/licenses/by/4.0). No other third-party assets.
