@@ -61,12 +61,16 @@ Every billed call is logged with its cost, and each endpoint is capped per day a
 
 ## Try it
 
+**[Open the studio](https://nicopriotto.github.io/orbit/)**, no install. That copy has no API key, so it plays what Muse already made: every saved look, and Mia and Theo in them. Pick a combination nobody has made yet and Pin hands you a few that are ready.
+
+To run it yourself:
+
 ```bash
 npm install
 npm run dev        # http://localhost:5192
 ```
 
-Without a key, everything already saved plays: 60 garments, the saved looks, and Mia and Theo in several outfits. To dress new combinations or try a look on your own photo, `cp .env.example .env.local` and set `META_API_KEY`. Docker works too: `docker build -t orbit . && docker run -p 5192:5192 --env-file .env.local orbit`.
+Without a key it works like the hosted copy: 60 garments, the saved looks, and Mia and Theo in them, with nothing billed. To dress new combinations, talk to Pin, add a garment or try a look on your own photo, `cp .env.example .env.local` and set `META_API_KEY`; the page notices the key by itself. `npm run build` also writes what was already made into `dist/demo/`, so `dist` works as a static site. Docker works too: `docker build -t orbit . && docker run -p 5192:5192 --env-file .env.local orbit`.
 
 `npm run check` runs lint, unit tests and the build; `npm run test:e2e` walks the studio in Chromium on desktop and phone, blocking every request that would bill Muse. CI runs both on every push, along with a gitleaks secret scan, CodeQL and `npm audit`. A `v*` tag publishes a Docker image to GHCR. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
