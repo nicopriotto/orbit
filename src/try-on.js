@@ -1,3 +1,5 @@
+import { LIVE, STATIC, api, hasSample } from './demo.js';
+
 const MAX_SIDE = 1400;
 const CANVAS = { width: 1120, height: 2130 };
 const FIGURE = { top: 70, bottom: 2080 };
@@ -65,7 +67,7 @@ function shadedGreen(red, green, blue) {
 
 /** How green this look's clothes really are, read from the mannequin wearing them, which has no green backdrop to pick up. Olive stays olive and cream stays cream. */
 async function clothGreen(look) {
-  const image = await loadImage(`api/looks/${look}-front.webp`);
+  const image = await loadImage(api(`looks/${look}-front.webp`));
   const canvas = document.createElement('canvas');
   canvas.width = image.naturalWidth >> 2;
   canvas.height = image.naturalHeight >> 2;
@@ -197,7 +199,29 @@ async function* parts(response) {
   }
 }
 
-const ready = () => Boolean(model || (photo && consent.checked));
+const ready = () => Boolean((model && (LIVE || hasSample(model, window.orbitLook()))) || (photo && consent.checked));
+
+/** Without a key only a model already dressed in this look can go on, and a photo of your own can't be sent at all. */
+function offer() {
+  for (const button of document.querySelectorAll('.model')) {
+    button.disabled = !LIVE && !hasSample(button.dataset.model, window.orbitLook());
+  }
+  if (LIVE) return;
+  const names = [...document.querySelectorAll('.model')].filter((button) => !button.disabled).map((button) => button.querySelector('b').textContent);
+  errorLine.textContent = names.length
+    ? `This preview has no API key, so it can't take a photo of you. ${names.join(' and ')} ${names.length > 1 ? 'are' : 'is'} ready in this look.`
+    : 'This preview has no API key, and neither model has worn this look yet. Pick one Pin suggests, or Surprise me.';
+  errorLine.toggleAttribute('data-note', true);
+  errorLine.hidden = false;
+}
+
+if (!LIVE) {
+  drop.inert = true;
+  drop.toggleAttribute('data-off', true);
+  hint.innerHTML = 'Your own photo<br />needs an API key';
+  consent.closest('label').style.display = 'none';
+  send.hidden = true;
+}
 
 function refresh() {
   send.disabled = !(photo && consent.checked);
@@ -241,8 +265,9 @@ function wearOrDress() {
 }
 
 document.getElementById('try').addEventListener('click', () => {
-  if (ready()) wearOrDress();
-  else dialog.showModal();
+  if (ready()) return wearOrDress();
+  offer();
+  dialog.showModal();
 });
 
 // A model goes straight on: nothing to upload, nothing to agree to.
@@ -259,7 +284,10 @@ for (const button of document.querySelectorAll('.model')) {
     wearOrDress();
   });
 }
-changePhoto.addEventListener('click', () => dialog.showModal());
+changePhoto.addEventListener('click', () => {
+  offer();
+  dialog.showModal();
+});
 
 // Make it again: only for the photo given in this visit, and only for the look on the stand now.
 window.orbitCanRedo = (look) => Boolean(!model && photo && consent.checked && made.has(look) && look === window.orbitLook());
@@ -274,6 +302,14 @@ document.getElementById('upload-form').addEventListener('submit', (event) => {
   wearOrDress();
 });
 
+/** A static copy has each model's look as a file, and plays it back the way the server streams it: front, then back. */
+async function ask(body) {
+  if (!STATIC) return fetch('api/try-on', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const kept = await fetch(api(`samples/${body.model}-${body.look}.json`)).then((response) => response.json());
+  const lines = [{ front: kept.front, frontMask: kept.frontMask }, { back: kept.back, backMask: kept.backMask }];
+  return new Response(lines.map((part) => `${JSON.stringify(part)}\n`).join(''));
+}
+
 /** Once the visitor has given a photo, every further look goes straight to Muse. */
 async function dress() {
   const look = window.orbitLook();
@@ -282,11 +318,7 @@ async function dress() {
   window.dispatchEvent(new CustomEvent('orbit:wait', { detail: { seconds: SECONDS, steps: TRY_ON_STEPS } }));
   const images = { look };
   try {
-    const response = await fetch('api/try-on', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(model ? { model, look } : { photo, look }),
-    });
+    const response = await ask(model ? { model, look } : { photo, look });
     if (!response.ok) throw new Error((await response.json()).error);
     const green = await clothGreen(look);
     for await (const part of parts(response)) {
@@ -301,6 +333,7 @@ async function dress() {
     if (!images.front) {
       window.dispatchEvent(new CustomEvent('orbit:wait'));
       errorLine.textContent = error.message || 'Something went wrong. Try again in a moment.';
+      errorLine.removeAttribute('data-note');
       errorLine.hidden = false;
       dialog.showModal();
       return;

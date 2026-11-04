@@ -2,10 +2,11 @@ import { KEEP, dropPrint, keepPrint, loadPrints } from './album.js';
 import { APP_NAME, makePrint } from './print.js';
 import { KINDS, LOOKS, MAN, SHOES, UNDER, WARDROBE, lookId, plainLook, setStoreItems } from './wardrobe.js';
 import './atelier.js';
+import { LIVE, NO_KEY, api, hasSample } from './demo.js';
 import NOTES from './catalogue-notes.json';
 
 // The store's own garments join the catalogue before anything is drawn. Without the API the base catalogue is enough.
-setStoreItems(await fetch('api/catalog').then((response) => (response.ok ? response.json() : [])).catch(() => []));
+setStoreItems(await fetch(api('catalog')).then((response) => (response.ok ? response.json() : [])).catch(() => []));
 
 // Zoom crops each photo from the bottom, far enough that the wall meets the floor behind the stand, not under it.
 const PLACES = [
@@ -62,7 +63,7 @@ let saved = { bare: VIEWS, [`${MAN}bare`]: VIEWS, [FIRST_LOOK]: VIEWS }; // Fini
 const chosen = () => figure + lookId(state.top, state.bottom, state.outer, state.shoes);
 const undressed = () => !state.top && !state.bottom && !state.outer;
 const worn = (item) => state[item.slot] === item;
-const picture = (look, view) => `api/looks/${look}-${view}.webp`;
+const picture = (look, view) => api(`looks/${look}-${view}.webp`);
 
 function source(look, view) {
   if (wearer) return view === 'back' ? wearer.back ?? wearer.front : wearer.front;
@@ -219,6 +220,11 @@ async function dress() {
   const look = chosen();
   const turn = ++dressing;
   if (saved[look]?.length !== VIEWS.length) {
+    if (!LIVE) {
+      refuse(new Error(NO_KEY));
+      offerReady();
+      return;
+    }
     lockTurn(true);
     wait(MUSE_SECONDS);
     try {
@@ -252,11 +258,39 @@ function refuse(error) {
 
 const covered = ({ top, bottom }) => top?.whole || (bottom && top);
 
+/** Whole outfits already saved for this mannequin, those Mia or Theo can also wear first. */
+function ready() {
+  const looks = Object.keys(saved).filter((look) => look.startsWith(MAN) === Boolean(figure) && covered(LOOKS.get(plainLook(look)) ?? {}) && saved[look].length === VIEWS.length && look !== chosen());
+  const worn = (look) => hasSample(look.startsWith(MAN) ? 'theo' : 'mia', look);
+  return looks.sort(() => Math.random() - 0.5).sort((a, b) => worn(b) - worn(a));
+}
+
+/** Without a key Pin can't think, but it can still hand over a few looks that are ready to wear. */
+function offerReady() {
+  stylist.toggleAttribute('data-open', true);
+  $('wardrobe').scrollTo({ top: 0, behavior: motion ? 'smooth' : 'auto' });
+  said('I need an API key to dress something new. These are ready, on the mannequin and on Mia or Theo:', { quiet: true });
+  for (const look of ready().slice(0, 3)) {
+    const pick = said('', { look });
+    Object.assign(pick, { tabIndex: 0, role: 'button', ariaLabel: 'Wear this look' });
+    pick.toggleAttribute('data-pick', true);
+    const wear = () => {
+      remember();
+      leaveWearer();
+      wearLook(look);
+      renderLook();
+      dress();
+    };
+    pick.addEventListener('click', wear);
+    pick.addEventListener('keydown', (event) => event.key === 'Enter' && wear());
+  }
+}
+
 /** Surprise deals only from whole outfits already saved, so it never spends anything or leaves the figure half dressed. */
 function surprise() {
   remember();
   leaveWearer();
-  const options = Object.keys(saved).filter((look) => look.startsWith(MAN) === Boolean(figure) && covered(LOOKS.get(plainLook(look)) ?? {}) && saved[look].length === VIEWS.length && look !== chosen());
+  const options = ready();
   if (!options.length) {
     history.pop();
     syncDock();
@@ -274,7 +308,9 @@ function surprise() {
 const stylist = $('stylist');
 const thread = $('stylist-thread');
 const talk = $('stylist-form');
-const GREETING = 'Tell me where you are going and I will put a look together. Or dress the mannequin yourself and ask what I think.';
+const GREETING = LIVE
+  ? 'Tell me where you are going and I will put a look together. Or dress the mannequin yourself and ask what I think.'
+  : 'This preview runs without an API key, so I can only point you to looks already made. Ask me anything and I will hand you a few.';
 const conversation = [{ role: 'stylist', text: GREETING }];
 let asking = 0;
 
@@ -317,6 +353,12 @@ async function askPin(words) {
   if (words.length < 2 || stylist.hasAttribute('data-thinking')) return;
   const ticket = ++asking;
   said(words, { you: true });
+  if (!LIVE) {
+    talk.ask.value = '';
+    syncTalk();
+    offerReady();
+    return;
+  }
   conversation.push({ role: 'shopper', text: words });
   talk.ask.value = '';
   // After the first question only the one about the look on the mannequin stays: it is always worth asking.
@@ -776,7 +818,7 @@ addEventListener('resize', fitAll);
 
 /** Reads the catalogue again and redraws the rails. What is worn keeps its place if it is still in the catalogue. */
 async function refreshWardrobe(added) {
-  const entries = await fetch('api/catalog').then((response) => response.json()).catch(() => null);
+  const entries = await fetch(api('catalog')).then((response) => response.json()).catch(() => null);
   if (!entries) return;
   setStoreItems(entries);
   const same = (item) => (item ? WARDROBE.find((entry) => entry.id === item.id) ?? null : null);
@@ -1368,9 +1410,10 @@ addEventListener('orbit:wear', async (e) => {
   }, 320);
 });
 addEventListener('orbit:back', syncTurn);
+addEventListener('orbit:say', (event) => flash(event.detail));
 window.orbitLook = () => shown;
 
-fetch('api/looks').then((response) => response.json()).then((list) => {
+fetch(api('looks')).then((response) => response.json()).then((list) => {
   saved = list;
   drawn = '';
   label();

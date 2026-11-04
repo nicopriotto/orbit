@@ -1,6 +1,7 @@
 // The store's side: two photos of a garment go in, Muse Spark reads them into a catalogue entry and tells SAM 3.1 what
 // to look for, SAM cuts the garment out of each photo, and the store gives it a price and hangs it in the wardrobe.
 // Each model's step is shown as it happens, so it is clear what is doing the work.
+import { LIVE } from './demo.js';
 import { KINDS } from './wardrobe.js';
 
 const $ = (id) => document.getElementById(id);
@@ -268,6 +269,7 @@ dialog.addEventListener('close', () => {
   if (phase === 'done' || phase === 'failed') reset();
 });
 $('add-garment').addEventListener('click', () => {
+  if (!LIVE) return dispatchEvent(new CustomEvent('orbit:say', { detail: 'Adding a garment needs an API key.' }));
   if (phase === 'done') reset();
   dialog.showModal();
 });
