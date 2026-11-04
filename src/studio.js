@@ -45,7 +45,8 @@ const HISTORY = 20;
 const FIRST_LOOK = 'jacket-chinos'; // Already saved, so the first visit spends nothing and Try it on me works from the start.
 const STORE = import.meta.env.VITE_STORE_URL; // The brand's cart. It receives the look's pieces as ?items=a,b,c.
 // A phone only has the gap between the name and Back/Forward for it, so it says less there.
-const BACK_WAIT = matchMedia('(max-width: 600px)').matches ? 'Making the back' : 'Muse is making the back';
+// Without a key the back was made earlier too: only cutting it out is left.
+const BACK_WAIT = matchMedia('(max-width: 600px)').matches ? (LIVE ? 'Making the back' : 'Cutting out the back') : LIVE ? 'Muse is making the back' : 'Cutting out the back';
 const BACK_FAILED = matchMedia('(max-width: 600px)').matches ? 'No back this time' : 'The back did not come through';
 
 const $ = (id) => document.getElementById(id);
