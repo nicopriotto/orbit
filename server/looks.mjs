@@ -29,7 +29,7 @@ const known = (id) => LOOKS.has(plainLook(id));
 const running = new Map(); // A look already on its way is shared, so two visitors never pay for the same image.
 
 const webp = (path) => ({ bytes: readFileSync(path), type: 'image/webp' });
-const finished = (id, view) => [`${BUILT}/${id}-${view}.webp`, `${FINISHED}/${id}-${view}.webp`].find(existsSync);
+export const finished = (id, view) => [`${BUILT}/${id}-${view}.webp`, `${FINISHED}/${id}-${view}.webp`].find(existsSync);
 const complete = (id) => VIEWS.every((view) => finished(id, view));
 const garments = ({ top, bottom, outer }) => [outer, top, bottom].filter(Boolean);
 const SHOE_NOTE = 'The shoes are the pair in the last two images, front and back, worn on both feet.';

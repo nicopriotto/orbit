@@ -1,22 +1,30 @@
 import { defineConfig } from 'vite';
 import { catalog } from './server/catalog.mjs';
+import { status, writeDemo } from './server/demo.mjs';
 import { looks } from './server/looks.mjs';
 import { stylist } from './server/stylist.mjs';
 import { tryOn } from './server/try-on.mjs';
 
 const api = {
   name: 'try-on-api',
-  configureServer(server) {
-    server.middlewares.use('/api/try-on', tryOn);
-    server.middlewares.use('/api/looks', looks);
-    server.middlewares.use('/api/catalog', catalog);
-    server.middlewares.use('/api/stylist', stylist);
-  },
-  configurePreviewServer(server) {
-    server.middlewares.use('/api/try-on', tryOn);
-    server.middlewares.use('/api/looks', looks);
-    server.middlewares.use('/api/catalog', catalog);
-    server.middlewares.use('/api/stylist', stylist);
+  configureServer: mount,
+  configurePreviewServer: mount,
+};
+
+function mount(server) {
+  server.middlewares.use('/api/status', status);
+  server.middlewares.use('/api/try-on', tryOn);
+  server.middlewares.use('/api/looks', looks);
+  server.middlewares.use('/api/catalog', catalog);
+  server.middlewares.use('/api/stylist', stylist);
+}
+
+// A build also carries what was already made, so the same files work as a static site with no server behind them.
+const demo = {
+  name: 'demo-files',
+  apply: 'build',
+  closeBundle() {
+    writeDemo('dist');
   },
 };
 
@@ -32,4 +40,4 @@ const site = {
   },
 };
 
-export default defineConfig({ base: './', plugins: [api, site], server: { watch: { ignored: ['**/cache/**'] } } });
+export default defineConfig({ base: './', plugins: [api, demo, site], server: { watch: { ignored: ['**/cache/**'] } } });
