@@ -15,6 +15,9 @@
 
 Online fashion loses a lot of sales because people can't tell how clothes will look on them. Orbit shows them before they buy, and the brand needs nothing more than two photos of each garment.
 
+<p align="center"><a href="https://youtu.be/52GHwzCVWJo"><img src="docs/images/video.jpg" alt="Watch the Orbit demo video on YouTube (2:44)." width="100%" /></a></p>
+<p align="center"><a href="https://youtu.be/52GHwzCVWJo"><b>Watch the demo (2:44)</b></a> · <a href="https://nicopriotto.github.io/orbit/"><b>Open the studio</b></a></p>
+
 <p align="center"><img src="docs/images/studio.jpg" alt="The Orbit studio: a dressed figure on a brass stand in a fitting room, with the wardrobe and the Polaroid of the try-on." width="100%" /></p>
 
 ## Dress it, turn it, take it anywhere
