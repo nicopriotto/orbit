@@ -7,6 +7,7 @@ const LOG = '.muse-usage.jsonl';
 
 export function apiKey() {
   if (process.env.META_API_KEY) return process.env.META_API_KEY;
+  if (!existsSync('.env.local')) return undefined;
   const line = readFileSync('.env.local', 'utf8').split('\n').find((row) => row.startsWith('META_API_KEY='));
   return line?.slice('META_API_KEY='.length).trim();
 }
