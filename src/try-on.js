@@ -1,12 +1,12 @@
 import { LIVE, STATIC, api, hasSample } from './demo.js';
 
 const MAX_SIDE = 1400;
-const CANVAS = { width: 1120, height: 2130 };
-const FIGURE = { top: 70, bottom: 2080 };
-const EDGE = 2; // Pixels trimmed from the outline.
 // On a person the loader says which model is at work: Muse dresses them, SAM 3.1 then cuts them out.
 const TRY_ON_STEPS = ['Muse reads your photo', 'Muse dresses you', 'Matching every seam', 'SAM 3.1 cuts you out'];
 const SECONDS = 20; // Up to the front, which is shown at once. The back follows from it, another image later.
+// Without a key the images were made earlier, so the loader says so and runs short: only the cutting out is left.
+const REPLAY_STEPS = ['Already made by Muse'];
+const REPLAY_SECONDS = 3;
 
 const dialog = document.getElementById('upload');
 const file = document.getElementById('upload-file');
@@ -20,11 +20,6 @@ const errorLine = document.getElementById('upload-error');
 const made = new Map(); // Each look on this photo is paid for once.
 let photo = null;
 let model = null; // One of the two people Muse made, in place of a photo. Their looks are kept on the server for everyone.
-
-const smooth = (low, high, x) => {
-  const t = Math.min(Math.max((x - low) / (high - low), 0), 1);
-  return t * t * (3 - 2 * t);
-};
 
 async function loadImage(url) {
   const image = new Image();
@@ -44,27 +39,6 @@ async function shrink(selected) {
   return canvas.toDataURL('image/jpeg', 0.9);
 }
 
-/** Muse drifts from the green it was asked for, more so from a real photo, so the colour to remove is read from the image's own edges. */
-function backdrop(data, width, height) {
-  const channels = [[], [], []];
-  const sample = (x, y) => channels.forEach((values, c) => values.push(data[(y * width + x) * 4 + c]));
-  for (let x = 0; x < width; x += 4) {
-    sample(x, 0);
-    sample(x, height - 1);
-  }
-  for (let y = 0; y < height; y += 4) {
-    sample(0, y);
-    sample(width - 1, y);
-  }
-  return channels.map((values) => values.sort((a, b) => a - b)[values.length >> 1]);
-}
-
-/** How far a pixel is from being backdrop gone dark: Muse shades the green in gaps between fingers, arms and legs, away from the colour read at the edges. Olive and sage stay below this. */
-function shadedGreen(red, green, blue) {
-  const excess = green - Math.max(red, blue);
-  return smooth(10, 24, excess) * smooth(0.16, 0.28, excess / Math.max(green, 1));
-}
-
 /** How green this look's clothes really are, read from the mannequin wearing them, which has no green backdrop to pick up. Olive stays olive and cream stays cream. */
 async function clothGreen(look) {
   const image = await loadImage(api(`looks/${look}-front.webp`));
@@ -81,109 +55,21 @@ async function clothGreen(look) {
   return shares.sort((a, b) => a - b)[Math.floor(shares.length * 0.9)];
 }
 
-/** Each pixel takes the lowest or highest value within a radius, one axis at a time. */
-function spread(values, width, height, radius, pick) {
-  const across = values.slice();
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      let value = values[y * width + x];
-      for (let d = Math.max(x - radius, 0); d <= Math.min(x + radius, width - 1); d++) value = pick(value, values[y * width + d]);
-      across[y * width + x] = value;
-    }
-  }
-  const result = across.slice();
-  for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
-      let value = across[y * width + x];
-      for (let d = Math.max(y - radius, 0); d <= Math.min(y + radius, height - 1); d++) value = pick(value, across[d * width + x]);
-      result[y * width + x] = value;
-    }
-  }
-  return result;
-}
-
-/**
- * SAM 3.1's mask of the person: well inside it, whatever is not plain backdrop is kept, even something green they
- * wear; well outside it nothing is, so no patch of backdrop survives. Along the edge the chroma key decides.
- */
-const MASK_MARGIN = 7; // Pixels of the full image; SAM's person mask comes at about half its resolution.
-
-async function keepPerson(alpha, matte, mask, width, height) {
-  const image = await loadImage(`data:image/png;base64,${mask}`).catch(() => null);
-  if (!image) return;
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const context = canvas.getContext('2d', { willReadFrequently: true });
-  context.drawImage(image, 0, 0, width, height);
-  const { data } = context.getImageData(0, 0, width, height);
-  const sure = new Uint8Array(width * height);
-  for (let p = 0; p < sure.length; p++) sure[p] = data[p * 4];
-  // SAM's mask is coarser than the photo, so it only rules away from its own edge: shrunk, it says what is surely the
-  // person; grown, what is surely backdrop. The band between is left to the chroma key's finer edge.
-  const inside = spread(sure, width, height, MASK_MARGIN, Math.min);
-  const outside = spread(sure, width, height, MASK_MARGIN, Math.max);
-  for (let p = 0; p < alpha.length; p++) {
-    if (outside[p] < 10) alpha[p] = 0;
-    // Surely the person, and not plain backdrop: a gap between the fingers is backdrop through and through and stays
-    // open, while something green they wear differs from the backdrop enough to be kept.
-    else if (inside[p] > 245 && matte[p] > 40) alpha[p] = 255;
-  }
-}
-
+// Cutting out reads every pixel of a large image, so it runs in a worker: the loader keeps moving meanwhile.
+const cutter = new Worker(new URL('./cut-worker.js', import.meta.url), { type: 'module' });
+const jobs = new Map();
+let job = 0;
+cutter.addEventListener('message', ({ data }) => {
+  const { resolve, reject } = jobs.get(data.id);
+  jobs.delete(data.id);
+  if (data.error) reject(new Error(data.error));
+  else resolve(data.url);
+});
 /** Cuts the figure out and places it on the mannequin's canvas, so the person stands exactly where it did. */
-async function cutOut(base64, green, mask) {
-  const image = await loadImage(`data:image/webp;base64,${base64}`);
-  const source = document.createElement('canvas');
-  source.width = image.naturalWidth;
-  source.height = image.naturalHeight;
-  const context = source.getContext('2d', { willReadFrequently: true });
-  context.drawImage(image, 0, 0);
-  const pixels = context.getImageData(0, 0, source.width, source.height);
-  const { data, width, height } = pixels;
-  const [keyRed, keyGreen, keyBlue] = backdrop(data, width, height);
-  const matte = new Uint8Array(width * height);
-  for (let p = 0; p < matte.length; p++) {
-    const [red, green, blue] = [data[p * 4], data[p * 4 + 1], data[p * 4 + 2]];
-    matte[p] = smooth(0.1, 0.2, Math.hypot(red - keyRed, green - keyGreen, blue - keyBlue) / 255) * (1 - shadedGreen(red, green, blue)) * 255;
-  }
-  // Pixels on the outline are part background, so the outline is pulled in and whatever green is left nearby is removed.
-  const alpha = spread(matte, width, height, EDGE, Math.min);
-  if (mask) await keepPerson(alpha, matte, mask, width, height);
-  const near = spread(alpha.map((value) => (value < 250 ? 255 : 0)), width, height, EDGE * 2, Math.max);
-  let top = height;
-  let bottom = 0;
-  for (let p = 0; p < alpha.length; p++) {
-    const i = p * 4;
-    data[i + 3] = alpha[p];
-    const brightest = Math.max(data[i], data[i + 2]);
-    // Light cloth also reflects the backdrop inside its folds, so nothing stays greener than the look itself.
-    data[i + 1] = Math.min(data[i + 1], near[p] ? brightest * 1.02 : brightest / (1 - green));
-    if (alpha[p] > 127) {
-      const y = Math.floor(p / width);
-      top = Math.min(top, y);
-      bottom = Math.max(bottom, y);
-    }
-  }
-  let left = width;
-  let right = 0;
-  for (let y = bottom - Math.floor((bottom - top) * 0.03); y <= bottom; y++) {
-    for (let x = 0; x < width; x++) {
-      if (data[(y * width + x) * 4 + 3] > 127) {
-        left = Math.min(left, x);
-        right = Math.max(right, x);
-      }
-    }
-  }
-  context.putImageData(pixels, 0, 0);
-  const scale = (FIGURE.bottom - FIGURE.top) / (bottom - top);
-  const placed = document.createElement('canvas');
-  Object.assign(placed, CANVAS);
-  const target = placed.getContext('2d');
-  target.imageSmoothingQuality = 'high';
-  target.drawImage(source, CANVAS.width / 2 - ((left + right) / 2) * scale, FIGURE.top - top * scale, width * scale, height * scale);
-  return placed.toDataURL('image/webp', 0.92);
-}
+const cutOut = (base64, green, mask) => new Promise((resolve, reject) => {
+  jobs.set(++job, { resolve, reject });
+  cutter.postMessage({ id: job, base64, green, mask });
+});
 
 /** The server sends each image as soon as Muse finishes it, one JSON object per line. */
 async function* parts(response) {
@@ -302,6 +188,12 @@ document.getElementById('upload-form').addEventListener('submit', (event) => {
   wearOrDress();
 });
 
+/** Cutting out holds the page for a moment, so the back waits until the front has finished arriving on the stand. */
+async function settled() {
+  for (let waited = 0; document.body.hasAttribute('data-working') && waited < 4000; waited += 100) await new Promise((done) => setTimeout(done, 100));
+  await new Promise(requestAnimationFrame);
+}
+
 /** A static copy has each model's look as a file, and plays it back the way the server streams it: front, then back. */
 async function ask(body) {
   if (!STATIC) return fetch('api/try-on', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
@@ -315,7 +207,7 @@ async function dress() {
   const look = window.orbitLook();
   dialog.close();
   changePhoto.hidden = false;
-  window.dispatchEvent(new CustomEvent('orbit:wait', { detail: { seconds: SECONDS, steps: TRY_ON_STEPS } }));
+  window.dispatchEvent(new CustomEvent('orbit:wait', { detail: LIVE ? { seconds: SECONDS, steps: TRY_ON_STEPS } : { seconds: REPLAY_SECONDS, steps: REPLAY_STEPS } }));
   const images = { look };
   try {
     const response = await ask(model ? { model, look } : { photo, look });
@@ -326,7 +218,10 @@ async function dress() {
         images.front = await cutOut(part.front, green, part.frontMask);
         made.set(look, images);
         window.dispatchEvent(new CustomEvent('orbit:wear', { detail: images }));
-      } else images.back = await cutOut(part.back, green, part.backMask);
+      } else {
+        await settled();
+        images.back = await cutOut(part.back, green, part.backMask);
+      }
     }
     if (!images.front) throw new Error();
   } catch (error) {
