@@ -11,6 +11,8 @@ test.beforeEach(async ({ page }) => {
     page.billed.push(route.request().url());
     return route.abort();
   });
+  // Every test runs as a copy without a key would, whatever this machine has in .env.local.
+  await page.route('**/api/status', (route) => route.fulfill({ json: { live: false, samples: ['mia-jacket-chinos'] } }));
   await page.goto('/');
   await expect(page.locator('body')).not.toHaveAttribute('data-intro', { timeout: 10_000 });
 });
@@ -43,4 +45,23 @@ test('each place can be chosen', async ({ page }) => {
     await places.nth(i).click();
     await expect(places.nth(i)).toHaveAttribute('aria-pressed', 'true');
   }
+});
+
+test('without a key Pin hands over looks that are ready', async ({ page }) => {
+  await page.locator('#wardrobe-rail, #open-wardrobe').filter({ visible: true }).first().click();
+  await page.locator('#stylist-form [name=ask]').fill('A gallery opening on Friday');
+  await page.locator('#stylist-form [name=ask]').press('Enter');
+  const picks = page.locator('.said[data-pick]');
+  await expect(picks).toHaveCount(3);
+  await picks.first().click();
+  await expect(page.locator('#figure')).toBeVisible();
+});
+
+test('without a key a photo cannot be sent, but Mia can wear a look she already wore', async ({ page }) => {
+  await page.locator('#try').click();
+  await expect(page.locator('#upload')).toBeVisible();
+  await expect(page.locator('#upload-drop')).toHaveAttribute('data-off');
+  await expect(page.locator('#upload-send')).toBeHidden();
+  await expect(page.locator('.model[data-model="mia"]')).toBeEnabled();
+  await expect(page.locator('.model[data-model="theo"]')).toBeDisabled();
 });
